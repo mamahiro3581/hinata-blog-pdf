@@ -1,0 +1,14 @@
+services:
+  - type: web
+    runtime: docker
+    name: hinata-blog-pdf
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: 4173
+      - key: NODE_ENV
+        value: production
+      - key: BASIC_AUTH_USER
+        sync: false
+      - key: BASIC_AUTH_PASSWORD
+        sync: false
