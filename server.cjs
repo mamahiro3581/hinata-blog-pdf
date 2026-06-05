@@ -660,7 +660,7 @@ function buildPrintHtml(provider, item, officialHtml) {
             margin: 0;
             color: #20242b;
             background: #ffffff;
-            font-family: "MS Gothic", "ＭＳ ゴシック", "MS PGothic", "ＭＳ Ｐゴシック", "Yu Gothic", "Hiragino Sans", "Noto Sans JP", monospace;
+            font-family: "Noto Sans CJK JP", "Noto Sans JP", "MS Gothic", "ＭＳ ゴシック", "Yu Gothic", "Hiragino Sans", sans-serif;
             font-size: 14px;
             line-height: 1.86;
             letter-spacing: 0;
