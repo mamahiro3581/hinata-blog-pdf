@@ -2,7 +2,7 @@
   "name": "hinata-blog-pdf",
   "version": "1.0.0",
   "private": true,
-  "description": "日向坂46公式ブログを選択してPDFまたはZipで保存するローカルWebアプリ",
+  "description": "坂道グループ公式ブログを選択してPDFまたはZipで保存するWebアプリ",
   "scripts": {
     "start": "node server.cjs"
   },

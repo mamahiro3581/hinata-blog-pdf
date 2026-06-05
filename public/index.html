@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hinata Blog PDF</title>
+    <title>Sakamichi Blog PDF</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
@@ -11,10 +11,18 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">OFFICIAL BLOG PDF</p>
-          <h1>Hinata Blog PDF</h1>
+          <h1>Sakamichi Blog PDF</h1>
         </div>
         <div class="topbar-actions">
-          <a class="ghost-link" href="https://www.hinatazaka46.com/s/official/diary/member?ima=0000" target="_blank" rel="noreferrer">公式サイト</a>
+          <label class="group-control">
+            <span>グループ</span>
+            <select id="groupSelect" aria-label="取得するグループ">
+              <option value="hinata" selected>日向坂46</option>
+              <option value="sakura">櫻坂46</option>
+              <option value="nogi">乃木坂46</option>
+            </select>
+          </label>
+          <a id="officialLink" class="ghost-link" href="https://www.hinatazaka46.com/s/official/?ima=0000" target="_blank" rel="noreferrer">公式サイト</a>
           <span id="status" class="status" role="status">準備中</span>
         </div>
       </header>

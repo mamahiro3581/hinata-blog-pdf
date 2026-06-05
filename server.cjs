@@ -8,16 +8,103 @@ const path = require('path');
 const os = require('os');
 const { createRequire } = require('module');
 
-const BASE_URL = 'https://www.hinatazaka46.com';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PORT = Number(process.env.PORT || 4173);
 const MAX_FETCH_PAGES = 500;
+const NOGI_FETCH_PAGE_SIZE = 100;
 const MAX_DOWNLOAD_ITEMS = 60;
 const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || '';
 const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD || '';
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+
+const PROVIDERS = {
+  hinata: {
+    id: 'hinata',
+    label: '日向坂46',
+    slug: 'hinata',
+    baseUrl: 'https://www.hinatazaka46.com',
+    officialUrl: 'https://www.hinatazaka46.com/s/official/?ima=0000',
+    membersPath: '/s/official/diary/member/list?ima=0000',
+    detailPath(id) {
+      return `/s/official/diary/detail/${id}?ima=0000&cd=member`;
+    },
+    memberListPath(memberId, pageIndex = 0) {
+      const url = new URL('/s/official/diary/member/list', this.baseUrl);
+      url.searchParams.set('ima', '0000');
+
+      if (pageIndex > 0) {
+        url.searchParams.set('page', String(pageIndex));
+      }
+
+      url.searchParams.set('ct', memberId);
+      url.searchParams.set('cd', 'member');
+      return `${url.pathname}${url.search}`;
+    },
+    parseMembers(html) {
+      return parseOptionMembers(this, html, /\/diary\/member\/list/);
+    },
+    parseArticles(html, memberId, pageIndex) {
+      return parseHinataArticles(this, html, memberId, pageIndex);
+    },
+    extractPrintData(item, officialHtml) {
+      return extractHinataPrintData(item, officialHtml);
+    },
+  },
+  sakura: {
+    id: 'sakura',
+    label: '櫻坂46',
+    slug: 'sakura',
+    baseUrl: 'https://sakurazaka46.com',
+    officialUrl: 'https://sakurazaka46.com/s/s46/?ima=0335',
+    membersPath: '/s/s46/diary/blog/list?ima=0000',
+    detailPath(id) {
+      return `/s/s46/diary/detail/${id}?ima=0000&cd=blog`;
+    },
+    memberListPath(memberId, pageIndex = 0) {
+      const url = new URL('/s/s46/diary/blog/list', this.baseUrl);
+      url.searchParams.set('ima', '0000');
+
+      if (pageIndex > 0) {
+        url.searchParams.set('page', String(pageIndex));
+        url.searchParams.set('cd', 'blog');
+      }
+
+      url.searchParams.set('ct', memberId);
+      return `${url.pathname}${url.search}`;
+    },
+    parseMembers(html) {
+      return parseOptionMembers(this, html, /\/diary\/blog\/list/);
+    },
+    parseArticles(html, memberId, pageIndex) {
+      return parseSakuraArticles(this, html, memberId, pageIndex);
+    },
+    extractPrintData(item, officialHtml) {
+      return extractSakuraPrintData(item, officialHtml);
+    },
+  },
+  nogi: {
+    id: 'nogi',
+    label: '乃木坂46',
+    slug: 'nogi',
+    baseUrl: 'https://www.nogizaka46.com',
+    officialUrl: 'https://sp.nogizaka46.com/',
+    membersPath: '/s/n46/diary/MEMBER?ima=0000',
+    detailPath(id) {
+      return `/s/n46/diary/detail/${id}?ima=0000&cd=MEMBER`;
+    },
+    parseMembers(html) {
+      return parseOptionMembers(this, html, /\/diary\/MEMBER\/list/i);
+    },
+    getBlogs(memberIds) {
+      return getNogiBlogs(this, memberIds);
+    },
+    extractPrintData(item, officialHtml) {
+      return extractNogiPrintData(item, officialHtml);
+    },
+  },
+};
 
 let browserPromise;
 
@@ -111,7 +198,7 @@ function authorized(req) {
 function requestAuth(res) {
   res.writeHead(401, {
     'Content-Type': 'text/plain; charset=utf-8',
-    'WWW-Authenticate': 'Basic realm="Hinata Blog PDF", charset="UTF-8"',
+    'WWW-Authenticate': 'Basic realm="Sakamichi Blog PDF", charset="UTF-8"',
     'Cache-Control': 'no-store',
   });
   res.end('認証が必要です。');
@@ -146,20 +233,33 @@ function escapeForHtml(value = '') {
     .replace(/'/g, '&#39;');
 }
 
-function absoluteUrl(value) {
-  return new URL(value, BASE_URL).toString();
+function providerList() {
+  return Object.values(PROVIDERS).map((provider) => ({
+    id: provider.id,
+    label: provider.label,
+    officialUrl: provider.officialUrl,
+  }));
 }
 
-function assertOfficialUrl(value) {
-  const url = new URL(value, BASE_URL);
-  if (url.origin !== BASE_URL) {
-    throw new Error('公式サイト以外のURLは処理できません。');
+function getProvider(group = 'hinata') {
+  const provider = PROVIDERS[group] || PROVIDERS.hinata;
+  return provider;
+}
+
+function providerAbsoluteUrl(provider, value) {
+  return new URL(value, provider.baseUrl).toString();
+}
+
+function assertOfficialUrl(provider, value) {
+  const url = new URL(value, provider.baseUrl);
+  if (url.origin !== new URL(provider.baseUrl).origin) {
+    throw new Error(`${provider.label}公式サイト以外のURLは処理できません。`);
   }
   return url;
 }
 
-async function fetchOfficial(pathOrUrl) {
-  const url = assertOfficialUrl(pathOrUrl);
+async function fetchOfficial(provider, pathOrUrl) {
+  const url = assertOfficialUrl(provider, pathOrUrl);
   const response = await fetch(url, {
     headers: {
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -170,18 +270,22 @@ async function fetchOfficial(pathOrUrl) {
   });
 
   if (!response.ok) {
-    throw new Error(`公式サイトの取得に失敗しました: ${response.status} ${response.statusText}`);
+    throw new Error(`${provider.label}公式サイトの取得に失敗しました: ${response.status} ${response.statusText}`);
   }
 
   return response.text();
 }
 
-function parseMembers(html) {
+function parseOptionMembers(provider, html, pathPattern) {
   const members = [];
-  const optionPattern = /<option\s+value="([^"]*\/diary\/member\/list[^"]*ct=([^"&]+)[^"]*)">([\s\S]*?)<\/option>/g;
+  const optionPattern = /<option\s+value="([^"]*ct=([^"&]+)[^"]*)"[^>]*>([\s\S]*?)<\/option>/g;
 
   for (const match of html.matchAll(optionPattern)) {
-    const label = cleanText(match[3]).replace(/\s*\|\s*$/, '');
+    if (!pathPattern.test(match[1])) {
+      continue;
+    }
+
+    const label = cleanText(match[3]).split('|')[0].trim();
     const updated = label.match(/\(([^)]+更新)\)$/)?.[1] || '';
     const name = label.replace(/\([^)]*更新\)$/, '').trim();
     const id = decodeURIComponent(match[2]);
@@ -191,7 +295,7 @@ function parseMembers(html) {
         id,
         name,
         updated,
-        url: absoluteUrl(match[1]),
+        url: providerAbsoluteUrl(provider, match[1]),
       });
     }
   }
@@ -199,24 +303,7 @@ function parseMembers(html) {
   return members;
 }
 
-function memberListPath(memberId, pageIndex = 0) {
-  const url = new URL('/s/official/diary/member/list', BASE_URL);
-  url.searchParams.set('ima', '0000');
-
-  if (pageIndex > 0) {
-    url.searchParams.set('page', String(pageIndex));
-  }
-
-  url.searchParams.set('ct', memberId);
-  url.searchParams.set('cd', 'member');
-  return `${url.pathname}${url.search}`;
-}
-
-function detailPath(id) {
-  return `/s/official/diary/detail/${id}?ima=0000&cd=member`;
-}
-
-function extractArticleBlock(html) {
+function extractHinataArticleBlock(html) {
   const start = html.indexOf('<div class="p-blog-article">');
   if (start === -1) {
     throw new Error('ブログ本文を見つけられませんでした。');
@@ -238,7 +325,23 @@ function extractClass(block, className) {
   return match ? match[1] : '';
 }
 
-function parseArticles(html, memberId, pageIndex) {
+function extractAnyClass(block, className) {
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = block.match(
+    new RegExp(`<([a-z0-9]+)\\b[^>]*class="[^"]*\\b${escaped}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/\\1>`, 'i'),
+  );
+  return match ? match[2] : '';
+}
+
+function extractDivByClass(block, className) {
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = block.match(
+    new RegExp(`<div\\b[^>]*class="[^"]*\\b${escaped}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/div>`, 'i'),
+  );
+  return match ? match[1] : '';
+}
+
+function parseHinataArticles(provider, html, memberId, pageIndex) {
   const articles = [];
   const blocks = html.split('<div class="p-blog-article">').slice(1);
 
@@ -261,28 +364,99 @@ function parseArticles(html, memberId, pageIndex) {
       memberId,
       memberName,
       page: pageIndex + 1,
-      url: absoluteUrl(detailMatch[1]),
-      image: imageMatch ? absoluteUrl(imageMatch[1]) : '',
+      group: provider.id,
+      groupLabel: provider.label,
+      url: providerAbsoluteUrl(provider, detailMatch[1]),
+      image: imageMatch ? providerAbsoluteUrl(provider, imageMatch[1]) : '',
     });
   }
 
   return articles;
 }
 
+function parseSakuraArticles(provider, html, memberId, pageIndex) {
+  const listMatch = html.match(/<ul\s+class="com-blog-part[^"]*">/i);
+  if (!listMatch) {
+    return [];
+  }
+
+  const listStart = listMatch.index;
+  const listEnd = html.indexOf('</ul>', listStart);
+  const listBlock = html.slice(listStart, listEnd > listStart ? listEnd : html.length);
+  const articles = [];
+  const articlePattern = /<li class="box"><a href="([^"]*\/s\/s46\/diary\/detail\/(\d+)[^"]*)"[\s\S]*?(?=<\/a><\/li>)/g;
+
+  for (const match of listBlock.matchAll(articlePattern)) {
+    const block = match[0];
+    const id = match[2];
+    const title = cleanText(block.match(/<h3\s+class="title"[^>]*>([\s\S]*?)<\/h3>/i)?.[1] || '');
+    const date = cleanText(block.match(/<p\s+class="date[^"]*"[^>]*>([\s\S]*?)<\/p>/i)?.[1] || '');
+    const memberName = cleanText(block.match(/<p\s+class="name"[^>]*>([\s\S]*?)<\/p>/i)?.[1] || '');
+    const imageMatch = block.match(/background-image:\s*url\(([^)]+)\)/i);
+
+    articles.push({
+      id,
+      title: title || `blog-${id}`,
+      date,
+      memberId,
+      memberName,
+      page: pageIndex + 1,
+      group: provider.id,
+      groupLabel: provider.label,
+      url: providerAbsoluteUrl(provider, match[1]),
+      image: imageMatch ? providerAbsoluteUrl(provider, imageMatch[1].replace(/^['"]|['"]$/g, '')) : '',
+    });
+  }
+
+  return articles;
+}
+
+function parseJsonp(raw) {
+  const json = raw.trim().replace(/^res\(/, '').replace(/\);?$/, '');
+  return JSON.parse(json);
+}
+
+function formatNogiDate(value = '') {
+  const match = String(value).match(/^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})/);
+  return match ? `${match[1]}.${match[2]}.${match[3]} ${match[4]}:${match[5]}` : value;
+}
+
+function parseNogiApiArticles(provider, data, memberId, pageIndex) {
+  return (data || []).map((item) => {
+    const id = String(item.code || '');
+    const url = item.link || provider.detailPath(id);
+    const image = item.img || '';
+
+    return {
+      id,
+      title: item.title || `blog-${id}`,
+      date: formatNogiDate(item.date || ''),
+      memberId,
+      memberName: item.name || '',
+      page: pageIndex + 1,
+      group: provider.id,
+      groupLabel: provider.label,
+      url: providerAbsoluteUrl(provider, url),
+      image: image ? providerAbsoluteUrl(provider, image) : '',
+    };
+  });
+}
+
 function validMemberId(id) {
-  return /^(?:\d{1,3}|000)$/.test(String(id));
+  return /^\d{1,8}$/.test(String(id));
 }
 
 function validBlogId(id) {
   return /^\d{1,10}$/.test(String(id));
 }
 
-async function getMembers() {
-  const html = await fetchOfficial('/s/official/diary/member/list?ima=0000');
-  return parseMembers(html);
+async function getMembers(group) {
+  const provider = getProvider(group);
+  const html = await fetchOfficial(provider, provider.membersPath);
+  return provider.parseMembers(html);
 }
 
-async function getBlogs(memberIds) {
+async function getHtmlBlogs(provider, memberIds) {
   const articles = [];
   const seen = new Set();
 
@@ -290,8 +464,8 @@ async function getBlogs(memberIds) {
     const seenForMember = new Set();
 
     for (let pageIndex = 0; pageIndex < MAX_FETCH_PAGES; pageIndex += 1) {
-      const html = await fetchOfficial(memberListPath(memberId, pageIndex));
-      const pageArticles = parseArticles(html, memberId, pageIndex);
+      const html = await fetchOfficial(provider, provider.memberListPath(memberId, pageIndex));
+      const pageArticles = provider.parseArticles(html, memberId, pageIndex);
 
       if (pageArticles.length === 0) {
         break;
@@ -316,13 +490,69 @@ async function getBlogs(memberIds) {
       }
 
       if (pageIndex === MAX_FETCH_PAGES - 1) {
-        throw new Error(`取得ページ上限に達しました。メンバーID ${memberId} の取得を中断しました。`);
+        throw new Error(`取得ページ上限に達しました。${provider.label} メンバーID ${memberId} の取得を中断しました。`);
       }
     }
   }
 
   articles.sort((a, b) => b.id.localeCompare(a.id, 'en', { numeric: true }));
   return articles;
+}
+
+async function getNogiBlogs(provider, memberIds) {
+  const articles = [];
+  const seen = new Set();
+
+  for (const memberId of memberIds) {
+    const seenForMember = new Set();
+
+    for (let offset = 0; offset < MAX_FETCH_PAGES * NOGI_FETCH_PAGE_SIZE; offset += NOGI_FETCH_PAGE_SIZE) {
+      const url = new URL('/s/n46/api/list/blog', provider.baseUrl);
+      url.searchParams.set('rw', String(NOGI_FETCH_PAGE_SIZE));
+      url.searchParams.set('st', String(offset));
+      url.searchParams.set('ct', memberId);
+
+      const raw = await fetchOfficial(provider, `${url.pathname}${url.search}`);
+      const payload = parseJsonp(raw);
+      const pageArticles = parseNogiApiArticles(
+        provider,
+        Array.isArray(payload.data) ? payload.data : [],
+        memberId,
+        Math.floor(offset / NOGI_FETCH_PAGE_SIZE),
+      );
+
+      if (pageArticles.length === 0) {
+        break;
+      }
+
+      let newForMember = 0;
+
+      for (const article of pageArticles) {
+        if (!seenForMember.has(article.id)) {
+          seenForMember.add(article.id);
+          newForMember += 1;
+        }
+
+        if (!seen.has(article.id)) {
+          seen.add(article.id);
+          articles.push(article);
+        }
+      }
+
+      const total = Number.parseInt(payload.count, 10);
+      if (newForMember === 0 || (Number.isFinite(total) && offset + pageArticles.length >= total)) {
+        break;
+      }
+    }
+  }
+
+  articles.sort((a, b) => b.id.localeCompare(a.id, 'en', { numeric: true }));
+  return articles;
+}
+
+async function getBlogs(group, memberIds) {
+  const provider = getProvider(group);
+  return provider.getBlogs ? provider.getBlogs(memberIds) : getHtmlBlogs(provider, memberIds);
 }
 
 async function getBrowser() {
@@ -361,18 +591,62 @@ async function waitForImages(page) {
   });
 }
 
-function buildPrintHtml(item, officialHtml) {
-  const articleBlock = extractArticleBlock(officialHtml);
-  const title = cleanText(extractClass(articleBlock, 'c-blog-article__title')) || item.title || `blog-${item.id}`;
-  const memberName = cleanText(extractClass(articleBlock, 'c-blog-article__name')) || item.memberName || '';
-  const date = cleanText(extractClass(articleBlock, 'c-blog-article__date')) || item.date || '';
-  const sourceUrl = absoluteUrl(detailPath(item.id));
+function extractHinataPrintData(item, officialHtml) {
+  const articleBlock = extractHinataArticleBlock(officialHtml);
+  return {
+    articleBlock,
+    title: cleanText(extractClass(articleBlock, 'c-blog-article__title')) || item.title || `blog-${item.id}`,
+    memberName: cleanText(extractClass(articleBlock, 'c-blog-article__name')) || item.memberName || '',
+    date: cleanText(extractClass(articleBlock, 'c-blog-article__date')) || item.date || '',
+  };
+}
+
+function extractSakuraPrintData(item, officialHtml) {
+  const body = extractDivByClass(officialHtml, 'box-article');
+  if (!body) {
+    throw new Error('ブログ本文を見つけられませんでした。');
+  }
+
+  const title = officialHtml.match(/<h1\s+class="title"[^>]*>([\s\S]*?)<\/h1>/i)?.[1] || '';
+  const foot = officialHtml.match(
+    /<div\s+class="blog-foot"[\s\S]*?<p\s+class="name">([\s\S]*?)<\/p>\s*<p\s+class="date[^"]*">([\s\S]*?)<\/p>/i,
+  );
+
+  return {
+    articleBlock: `<div class="blog-content-body">${body}</div>`,
+    title: cleanText(title) || item.title || `blog-${item.id}`,
+    memberName: cleanText(foot?.[1] || '') || item.memberName || '',
+    date: cleanText(foot?.[2] || '') || item.date || '',
+  };
+}
+
+function extractNogiPrintData(item, officialHtml) {
+  const body = extractDivByClass(officialHtml, 'bd--edit');
+  if (!body) {
+    throw new Error('ブログ本文を見つけられませんでした。');
+  }
+
+  return {
+    articleBlock: `<div class="blog-content-body">${body}</div>`,
+    title: cleanText(extractAnyClass(officialHtml, 'bd--hd__ttl')) || item.title || `blog-${item.id}`,
+    memberName: cleanText(extractAnyClass(officialHtml, 'bd--prof__name')) || item.memberName || '',
+    date: cleanText(extractAnyClass(officialHtml, 'bd--hd__date')) || item.date || '',
+  };
+}
+
+function buildPrintHtml(provider, item, officialHtml) {
+  const printData = provider.extractPrintData(item, officialHtml);
+  const title = printData.title || item.title || `blog-${item.id}`;
+  const memberName = printData.memberName || item.memberName || '';
+  const date = printData.date || item.date || '';
+  const articleBlock = printData.articleBlock;
+  const sourceUrl = providerAbsoluteUrl(provider, provider.detailPath(item.id));
 
   return `<!doctype html>
     <html lang="ja">
       <head>
         <meta charset="utf-8">
-        <base href="${BASE_URL}/">
+        <base href="${provider.baseUrl}/">
         <title>${escapeForHtml(title)}</title>
         <style>
           @page {
@@ -419,12 +693,19 @@ function buildPrintHtml(item, officialHtml) {
           .p-blog-article__head {
             display: none;
           }
+          .blog-content {
+            word-break: break-word;
+          }
+          .blog-content p {
+            margin: 0;
+          }
           .c-blog-article__text {
             word-break: break-word;
           }
           .c-blog-article__text p {
             margin: 0;
           }
+          .blog-content img,
           .c-blog-article__text img {
             display: block;
             width: auto !important;
@@ -434,11 +715,14 @@ function buildPrintHtml(item, officialHtml) {
             break-inside: avoid;
             border-radius: 2px;
           }
+          .blog-content a,
           .c-blog-article__text a {
             color: #1d5f94;
             text-decoration: underline;
             overflow-wrap: anywhere;
           }
+          .blog-content iframe,
+          .blog-content video,
           .c-blog-article__text iframe,
           .c-blog-article__text video {
             max-width: 100%;
@@ -455,13 +739,13 @@ function buildPrintHtml(item, officialHtml) {
       </head>
       <body>
         <main class="print-shell">
-          <p class="print-kicker">日向坂46 公式ブログ</p>
+          <p class="print-kicker">${escapeForHtml(provider.label)} 公式ブログ</p>
           <h1 class="print-title">${escapeForHtml(title)}</h1>
           <div class="print-meta">
             <span>${escapeForHtml(date)}</span>
             <span>${escapeForHtml(memberName)}</span>
           </div>
-          ${articleBlock}
+          <div class="blog-content group-${escapeForHtml(provider.id)}">${articleBlock}</div>
           <div class="print-source">${escapeForHtml(sourceUrl)}</div>
         </main>
       </body>
@@ -469,8 +753,9 @@ function buildPrintHtml(item, officialHtml) {
 }
 
 async function renderBlogPdf(item) {
-  const officialHtml = await fetchOfficial(detailPath(item.id));
-  const printHtml = buildPrintHtml(item, officialHtml);
+  const provider = getProvider(item.group);
+  const officialHtml = await fetchOfficial(provider, provider.detailPath(item.id));
+  const printHtml = buildPrintHtml(provider, item, officialHtml);
   const browser = await getBrowser();
   const page = await browser.newPage({
     viewport: { width: 980, height: 1400 },
@@ -516,9 +801,11 @@ function sanitizeFilename(value, fallback = 'blog') {
 function pdfFilename(item, index) {
   const date = sanitizeFilename(item.date || '', '')
     .replace(/\./g, '-')
+    .replace(/\//g, '-')
     .replace(/\s+/g, '_')
     .replace(/:/g, '-');
-  const base = [date, item.memberName, item.title, item.id].filter(Boolean).join('_');
+  const provider = getProvider(item.group);
+  const base = [provider.label, date, item.memberName, item.title, item.id].filter(Boolean).join('_');
   return `${sanitizeFilename(base || `blog-${index + 1}`)}.pdf`;
 }
 
@@ -667,13 +954,20 @@ async function readJson(req) {
 }
 
 async function handleApi(req, res, url) {
+  if (req.method === 'GET' && url.pathname === '/api/groups') {
+    sendJson(res, 200, { groups: providerList() });
+    return;
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/members') {
-    const members = await getMembers();
-    sendJson(res, 200, { members });
+    const group = getProvider(url.searchParams.get('group') || 'hinata').id;
+    const members = await getMembers(group);
+    sendJson(res, 200, { group, members });
     return;
   }
 
   if (req.method === 'GET' && url.pathname === '/api/blogs') {
+    const group = getProvider(url.searchParams.get('group') || 'hinata').id;
     const memberIds = (url.searchParams.get('members') || '')
       .split(',')
       .map((value) => value.trim())
@@ -684,8 +978,9 @@ async function handleApi(req, res, url) {
       return;
     }
 
-    const blogs = await getBlogs(memberIds);
+    const blogs = await getBlogs(group, memberIds);
     sendJson(res, 200, {
+      group,
       blogs,
       count: blogs.length,
       fetchedAt: new Date().toISOString(),
@@ -708,6 +1003,7 @@ async function handleApi(req, res, url) {
     }
 
     const normalized = items.map((item) => ({
+      group: getProvider(item.group || body.group || 'hinata').id,
       id: String(item.id || ''),
       title: String(item.title || ''),
       date: String(item.date || ''),
@@ -732,7 +1028,7 @@ async function handleApi(req, res, url) {
       res.writeHead(200, {
         'Content-Type': 'application/pdf',
         'Content-Length': pdfs[0].data.length,
-        'Content-Disposition': contentDisposition(filename, 'hinata-blog.pdf'),
+        'Content-Disposition': contentDisposition(filename, 'sakamichi-blog.pdf'),
         'Cache-Control': 'no-store',
       });
       res.end(pdfs[0].data);
@@ -741,12 +1037,12 @@ async function handleApi(req, res, url) {
 
     const zip = createZip(pdfs);
     const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+$/, '').replace('T', '_');
-    const filename = `hinata_blog_${stamp}.zip`;
+    const filename = `sakamichi_blog_${stamp}.zip`;
 
     res.writeHead(200, {
       'Content-Type': 'application/zip',
       'Content-Length': zip.length,
-      'Content-Disposition': contentDisposition(filename, 'hinata-blogs.zip'),
+      'Content-Disposition': contentDisposition(filename, 'sakamichi-blogs.zip'),
       'Cache-Control': 'no-store',
     });
     res.end(zip);
@@ -820,7 +1116,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Hinata Blog PDF is running: http://localhost:${PORT}`);
+  console.log(`Sakamichi Blog PDF is running: http://localhost:${PORT}`);
 });
 
 async function shutdown() {

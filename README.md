@@ -1,6 +1,6 @@
-# Hinata Blog PDF
+# Sakamichi Blog PDF
 
-日向坂46公式ブログをメンバー別に全件取得し、選択したブログをPDFで保存するローカルWebアプリです。複数のブログを選ぶとZipファイルでまとめて保存します。
+乃木坂46、櫻坂46、日向坂46の公式ブログをメンバー別に全件取得し、選択したブログをPDFで保存するWebアプリです。複数のブログを選ぶとZipファイルでまとめて保存します。
 
 ## 起動
 
@@ -34,8 +34,8 @@ Renderに公開する場合:
 Dockerでローカル確認する場合:
 
 ```bash
-docker build -t hinata-blog-pdf .
-docker run --rm -p 4173:4173 -e PORT=4173 hinata-blog-pdf
+docker build -t sakamichi-blog-pdf .
+docker run --rm -p 4173:4173 -e PORT=4173 sakamichi-blog-pdf
 ```
 
 公開先では次の環境変数を設定できます。

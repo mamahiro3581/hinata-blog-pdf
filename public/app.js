@@ -1,6 +1,21 @@
 const DEFAULT_BLOG_PAGE_SIZE = '10';
+const GROUPS = {
+  hinata: {
+    label: '日向坂46',
+    officialUrl: 'https://www.hinatazaka46.com/s/official/?ima=0000',
+  },
+  sakura: {
+    label: '櫻坂46',
+    officialUrl: 'https://sakurazaka46.com/s/s46/?ima=0335',
+  },
+  nogi: {
+    label: '乃木坂46',
+    officialUrl: 'https://sp.nogizaka46.com/',
+  },
+};
 
 const state = {
+  group: 'hinata',
   members: [],
   selectedMembers: new Set(),
   blogs: [],
@@ -12,6 +27,8 @@ const state = {
 
 const els = {
   status: document.querySelector('#status'),
+  groupSelect: document.querySelector('#groupSelect'),
+  officialLink: document.querySelector('#officialLink'),
   memberCount: document.querySelector('#memberCount'),
   memberSearch: document.querySelector('#memberSearch'),
   memberList: document.querySelector('#memberList'),
@@ -36,6 +53,15 @@ function setStatus(message) {
   els.status.textContent = message;
 }
 
+function currentGroup() {
+  return GROUPS[state.group] || GROUPS.hinata;
+}
+
+function updateGroupChrome() {
+  els.groupSelect.value = state.group;
+  els.officialLink.href = currentGroup().officialUrl;
+}
+
 function setBusy(isBusy) {
   state.busy = isBusy;
   document.body.classList.toggle('is-loading', isBusy);
@@ -47,6 +73,7 @@ function updateButtons() {
   const hasBlogs = state.blogs.length > 0;
   const hasSelectedBlogs = state.selectedBlogs.size > 0;
 
+  els.groupSelect.disabled = state.busy;
   els.loadBlogs.disabled = state.busy || !hasMembers;
   els.blogPageSize.disabled = state.busy;
   els.selectAllBlogs.disabled = state.busy || !hasBlogs;
@@ -168,7 +195,7 @@ function renderBlogs() {
       const checked = state.selectedBlogs.has(blog.id) ? 'checked' : '';
       const thumb = blog.image
         ? `<img src="${escapeHtml(blog.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" />`
-        : `<span class="thumb-fallback">${escapeHtml((blog.memberName || 'H').slice(0, 1))}</span>`;
+        : `<span class="thumb-fallback">${escapeHtml((blog.memberName || currentGroup().label).slice(0, 1))}</span>`;
 
       return `
         <article class="blog-item">
@@ -236,9 +263,10 @@ function setBlogPage(page, shouldScroll = true) {
 
 async function loadMembers() {
   setBusy(true);
-  setStatus('取得中');
+  setStatus(`${currentGroup().label} 取得中`);
   try {
-    const data = await apiJson('/api/members');
+    const query = new URLSearchParams({ group: state.group });
+    const data = await apiJson(`/api/members?${query.toString()}`);
     state.members = data.members || [];
     state.selectedMembers.clear();
 
@@ -263,7 +291,7 @@ async function loadBlogs() {
   }
 
   setBusy(true);
-  setStatus('全ブログ取得中');
+  setStatus(`${currentGroup().label} 全ブログ取得中`);
   state.blogs = [];
   state.selectedBlogs.clear();
   state.currentBlogPage = 1;
@@ -271,6 +299,7 @@ async function loadBlogs() {
 
   try {
     const query = new URLSearchParams({
+      group: state.group,
       members: memberIds.join(','),
     });
     const data = await apiJson(`/api/blogs?${query.toString()}`);
@@ -319,7 +348,7 @@ async function downloadSelectedBlogs() {
     const response = await fetch('/api/download', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ blogs }),
+      body: JSON.stringify({ group: state.group, blogs }),
     });
 
     if (!response.ok) {
@@ -330,7 +359,7 @@ async function downloadSelectedBlogs() {
     const blob = await response.blob();
     const filename =
       filenameFromDisposition(response.headers.get('Content-Disposition')) ||
-      (blogs.length === 1 ? 'hinata-blog.pdf' : 'hinata-blogs.zip');
+      (blogs.length === 1 ? 'sakamichi-blog.pdf' : 'sakamichi-blogs.zip');
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = objectUrl;
@@ -379,6 +408,21 @@ els.blogList.addEventListener('change', (event) => {
 });
 
 els.memberSearch.addEventListener('input', renderMembers);
+
+els.groupSelect.addEventListener('change', () => {
+  state.group = GROUPS[els.groupSelect.value] ? els.groupSelect.value : 'hinata';
+  state.members = [];
+  state.selectedMembers.clear();
+  state.blogs = [];
+  state.selectedBlogs.clear();
+  state.currentBlogPage = 1;
+  els.memberSearch.value = '';
+  els.emptyState.textContent = 'メンバーを選んでブログを取得してください';
+  updateGroupChrome();
+  renderMembers();
+  renderBlogs();
+  loadMembers();
+});
 
 els.selectAllMembers.addEventListener('click', () => {
   for (const member of visibleMembers()) {
@@ -432,4 +476,5 @@ els.paginationPages.addEventListener('click', (event) => {
 
 els.downloadBlogs.addEventListener('click', downloadSelectedBlogs);
 
+updateGroupChrome();
 loadMembers();
