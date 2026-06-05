@@ -12,6 +12,12 @@ const GROUPS = {
     buttonColor: '#f19db5',
     buttonHoverColor: '#de829e',
   },
+  keyaki: {
+    label: '欅坂46',
+    officialUrl: 'https://www.keyakizaka46.com/s/k46o/diary/member?ima=0000',
+    buttonColor: '#5eb954',
+    buttonHoverColor: '#4da344',
+  },
   nogi: {
     label: '乃木坂46',
     officialUrl: 'https://sp.nogizaka46.com/',

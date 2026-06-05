@@ -84,6 +84,38 @@ const PROVIDERS = {
       return extractSakuraPrintData(item, officialHtml);
     },
   },
+  keyaki: {
+    id: 'keyaki',
+    label: '欅坂46',
+    slug: 'keyaki',
+    baseUrl: 'https://www.keyakizaka46.com',
+    officialUrl: 'https://www.keyakizaka46.com/s/k46o/diary/member?ima=0000',
+    membersPath: '/s/k46o/diary/member?ima=0000',
+    detailPath(id) {
+      return `/s/k46o/diary/detail/${id}?ima=0000&cd=member`;
+    },
+    memberListPath(memberId, pageIndex = 0) {
+      const url = new URL('/s/k46o/diary/member/list', this.baseUrl);
+      url.searchParams.set('ima', '0000');
+
+      if (pageIndex > 0) {
+        url.searchParams.set('page', String(pageIndex));
+        url.searchParams.set('cd', 'member');
+      }
+
+      url.searchParams.set('ct', memberId);
+      return `${url.pathname}${url.search}`;
+    },
+    parseMembers(html) {
+      return parseKeyakiMembers(this, html);
+    },
+    parseArticles(html, memberId, pageIndex) {
+      return parseKeyakiArticles(this, html, memberId, pageIndex);
+    },
+    extractPrintData(item, officialHtml) {
+      return extractKeyakiPrintData(item, officialHtml);
+    },
+  },
   nogi: {
     id: 'nogi',
     label: '乃木坂46',
@@ -341,6 +373,75 @@ function extractDivByClass(block, className) {
   return match ? match[1] : '';
 }
 
+function extractBalancedDivByClass(html, className) {
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const startPattern = new RegExp(`<div\\b[^>]*class="[^"]*\\b${escaped}\\b[^"]*"[^>]*>`, 'i');
+  const startMatch = startPattern.exec(html);
+
+  if (!startMatch) {
+    return '';
+  }
+
+  const start = startMatch.index + startMatch[0].length;
+  const tagPattern = /<\/?div\b[^>]*>/gi;
+  tagPattern.lastIndex = start;
+  let depth = 1;
+  let match;
+
+  while ((match = tagPattern.exec(html))) {
+    const tag = match[0];
+    if (tag.startsWith('</')) {
+      depth -= 1;
+    } else if (!tag.endsWith('/>')) {
+      depth += 1;
+    }
+
+    if (depth === 0) {
+      return html.slice(start, match.index);
+    }
+  }
+
+  return html.slice(start);
+}
+
+function formatKeyakiMemberUpdated(value = '') {
+  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match ? `${match[1]}.${match[2]}.${match[3]}更新` : '';
+}
+
+function parseKeyakiMembers(provider, html) {
+  const updates = new Map();
+  const updatePattern = /member:\s*"([^"]+)"\s*,\s*update:\s*"([^"]+)"/g;
+
+  for (const match of html.matchAll(updatePattern)) {
+    updates.set(match[1], formatKeyakiMemberUpdated(match[2]));
+  }
+
+  const members = [];
+  const seen = new Set();
+  const memberPattern =
+    /<li\b[^>]*data-member="([^"]+)"[\s\S]*?<a href="([^"]*\/s\/k46o\/diary\/member\/list[^"]*ct=([^"&]+)[^"]*)"[\s\S]*?<p\s+class="name"[^>]*>([\s\S]*?)<\/p>/g;
+
+  for (const match of html.matchAll(memberPattern)) {
+    const id = decodeURIComponent(match[3] || match[1]);
+    const name = cleanText(match[4]);
+
+    if (!id || !name || seen.has(id)) {
+      continue;
+    }
+
+    seen.add(id);
+    members.push({
+      id,
+      name,
+      updated: updates.get(id) || '',
+      url: providerAbsoluteUrl(provider, match[2]),
+    });
+  }
+
+  return members;
+}
+
 function parseHinataArticles(provider, html, memberId, pageIndex) {
   const articles = [];
   const blocks = html.split('<div class="p-blog-article">').slice(1);
@@ -367,6 +468,61 @@ function parseHinataArticles(provider, html, memberId, pageIndex) {
       group: provider.id,
       groupLabel: provider.label,
       url: providerAbsoluteUrl(provider, detailMatch[1]),
+      image: imageMatch ? providerAbsoluteUrl(provider, imageMatch[1]) : '',
+    });
+  }
+
+  return articles;
+}
+
+function parseKeyakiListDate(block) {
+  const dateMatch = block.match(
+    /<div\s+class="box-date"[\s\S]*?<time[^>]*>([\s\S]*?)<\/time>\s*<time[^>]*>([\s\S]*?)<\/time>/i,
+  );
+
+  if (!dateMatch) {
+    return '';
+  }
+
+  const month = cleanText(dateMatch[1]);
+  const day = cleanText(dateMatch[2]);
+  return month && day ? `${month}.${day}` : `${month}${day}`;
+}
+
+function parseKeyakiArticles(provider, html, memberId, pageIndex) {
+  const listStart = html.indexOf('<div class="keyaki-blog_list">');
+  if (listStart === -1) {
+    return [];
+  }
+
+  const pagerStart = html.indexOf('<div class="pager"', listStart);
+  const listBlock = html.slice(listStart, pagerStart > listStart ? pagerStart : html.length);
+  const articles = [];
+  const articlePattern = /<article\b[\s\S]*?<\/article>/gi;
+
+  for (const match of listBlock.matchAll(articlePattern)) {
+    const block = match[0];
+    const titleMatch = block.match(
+      /<div\s+class="box-ttl"[\s\S]*?<a href="([^"]*\/s\/k46o\/diary\/detail\/(\d+)[^"]*)"[^>]*>([\s\S]*?)<\/a>/i,
+    );
+
+    if (!titleMatch) {
+      continue;
+    }
+
+    const imageMatch = Array.from(block.matchAll(/<img[^>]+src="([^"]*)"/gi)).find((item) => item[1]);
+    const id = titleMatch[2];
+
+    articles.push({
+      id,
+      title: cleanText(titleMatch[3]) || `blog-${id}`,
+      date: parseKeyakiListDate(block),
+      memberId,
+      memberName: cleanText(block.match(/<p\s+class="name"[^>]*>([\s\S]*?)<\/p>/i)?.[1] || ''),
+      page: pageIndex + 1,
+      group: provider.id,
+      groupLabel: provider.label,
+      url: providerAbsoluteUrl(provider, titleMatch[1]),
       image: imageMatch ? providerAbsoluteUrl(provider, imageMatch[1]) : '',
     });
   }
@@ -617,6 +773,28 @@ function extractSakuraPrintData(item, officialHtml) {
     title: cleanText(title) || item.title || `blog-${item.id}`,
     memberName: cleanText(foot?.[1] || '') || item.memberName || '',
     date: cleanText(foot?.[2] || '') || item.date || '',
+  };
+}
+
+function extractKeyakiPrintData(item, officialHtml) {
+  const body = extractBalancedDivByClass(officialHtml, 'box-article');
+  if (!body) {
+    throw new Error('ブログ本文を見つけられませんでした。');
+  }
+
+  const singleBlock = extractBalancedDivByClass(officialHtml, 'keyaki-blog_single') || officialHtml;
+  const title = singleBlock.match(/<div\s+class="box-ttl"[\s\S]*?<h3[^>]*>([\s\S]*?)<\/h3>/i)?.[1] || '';
+  const memberName =
+    singleBlock.match(/<p\s+class="name"[\s\S]*?<a[^>]*>([\s\S]*?)<\/a>/i)?.[1] ||
+    singleBlock.match(/<p\s+class="name"[^>]*>([\s\S]*?)<\/p>/i)?.[1] ||
+    '';
+  const bottomDate = singleBlock.match(/<div\s+class="box-bottom"[\s\S]*?<li>\s*([\s\S]*?)\s*<\/li>/i)?.[1] || '';
+
+  return {
+    articleBlock: `<div class="blog-content-body">${body}</div>`,
+    title: cleanText(title) || item.title || `blog-${item.id}`,
+    memberName: cleanText(memberName) || item.memberName || '',
+    date: cleanText(bottomDate) || item.date || '',
   };
 }
 
