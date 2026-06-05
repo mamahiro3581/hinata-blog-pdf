@@ -427,9 +427,10 @@ function buildPrintHtml(item, officialHtml) {
           }
           .c-blog-article__text img {
             display: block;
-            max-width: min(100%, 620px) !important;
+            width: auto !important;
+            max-width: 25% !important;
             height: auto !important;
-            margin: 14px auto;
+            margin: 8px auto;
             break-inside: avoid;
             border-radius: 2px;
           }
