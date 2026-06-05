@@ -107,6 +107,12 @@ function currentBlogPageSize() {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : Number.parseInt(DEFAULT_BLOG_PAGE_SIZE, 10);
 }
 
+function currentPageBlogs() {
+  const pageSize = currentBlogPageSize();
+  const startIndex = (state.currentBlogPage - 1) * pageSize;
+  return state.blogs.slice(startIndex, startIndex + pageSize);
+}
+
 function renderMembers() {
   const members = visibleMembers();
   els.memberCount.textContent = `${state.selectedMembers.size}/${state.members.length}`;
@@ -140,7 +146,7 @@ function renderBlogs() {
   const totalPages = totalBlogPages();
   const pageSize = currentBlogPageSize();
   const startIndex = (state.currentBlogPage - 1) * pageSize;
-  const pageBlogs = state.blogs.slice(startIndex, startIndex + pageSize);
+  const pageBlogs = currentPageBlogs();
   const displayStart = pageBlogs.length ? startIndex + 1 : 0;
   const displayEnd = startIndex + pageBlogs.length;
 
@@ -389,7 +395,7 @@ els.clearMembers.addEventListener('click', () => {
 els.loadBlogs.addEventListener('click', loadBlogs);
 
 els.selectAllBlogs.addEventListener('click', () => {
-  for (const blog of state.blogs) {
+  for (const blog of currentPageBlogs()) {
     state.selectedBlogs.add(blog.id);
   }
   renderBlogs();
