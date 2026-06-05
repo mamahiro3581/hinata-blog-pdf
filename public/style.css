@@ -10,6 +10,8 @@
   --blue-dark: #1d5f94;
   --green: #7cc7e8;
   --green-dark: #62b6dc;
+  --primary-button: var(--green);
+  --primary-button-hover: var(--green-dark);
   --coral: #cc6b4a;
   --shadow: 0 18px 45px rgba(26, 33, 44, 0.09);
   font-family:
@@ -267,12 +269,12 @@ h2 {
 .primary {
   padding: 0 15px;
   color: #ffffff;
-  background: var(--green);
+  background: var(--primary-button);
   font-weight: 700;
 }
 
 .primary:hover:not(:disabled) {
-  background: var(--green-dark);
+  background: var(--primary-button-hover);
 }
 
 .secondary {

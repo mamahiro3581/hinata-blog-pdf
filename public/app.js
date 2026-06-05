@@ -3,14 +3,20 @@ const GROUPS = {
   hinata: {
     label: '日向坂46',
     officialUrl: 'https://www.hinatazaka46.com/s/official/?ima=0000',
+    buttonColor: '#7cc7e8',
+    buttonHoverColor: '#62b6dc',
   },
   sakura: {
     label: '櫻坂46',
     officialUrl: 'https://sakurazaka46.com/s/s46/?ima=0335',
+    buttonColor: '#f19db5',
+    buttonHoverColor: '#de829e',
   },
   nogi: {
     label: '乃木坂46',
     officialUrl: 'https://sp.nogizaka46.com/',
+    buttonColor: '#812990',
+    buttonHoverColor: '#6f217d',
   },
 };
 
@@ -58,8 +64,11 @@ function currentGroup() {
 }
 
 function updateGroupChrome() {
+  const group = currentGroup();
   els.groupSelect.value = state.group;
-  els.officialLink.href = currentGroup().officialUrl;
+  els.officialLink.href = group.officialUrl;
+  document.documentElement.style.setProperty('--primary-button', group.buttonColor);
+  document.documentElement.style.setProperty('--primary-button-hover', group.buttonHoverColor);
 }
 
 function setBusy(isBusy) {
