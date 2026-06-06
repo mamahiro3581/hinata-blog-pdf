@@ -12,7 +12,10 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const PORT = Number(process.env.PORT || 4173);
 const MAX_FETCH_PAGES = 500;
 const NOGI_FETCH_PAGE_SIZE = 100;
-const MAX_DOWNLOAD_ITEMS = 60;
+const MAX_DOWNLOAD_ITEMS = 30;
+const DOWNLOAD_RATE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const MAX_DOWNLOAD_ITEMS_PER_CLIENT = 60;
+const MAX_DOWNLOAD_ITEMS_GLOBAL = 120;
 const PDF_IMAGE_MAX_WIDTH = 360;
 const PDF_IMAGE_MAX_HEIGHT = 540;
 const PDF_IMAGE_MAX_SOURCE_BYTES = 15 * 1024 * 1024;
@@ -147,6 +150,11 @@ const PROVIDERS = {
 
 const activeBrowsers = new Set();
 let pdfJobTail = Promise.resolve();
+let downloadUsage = {
+  startedAt: Date.now(),
+  total: 0,
+  byClient: new Map(),
+};
 
 function loadModule(name) {
   try {
@@ -199,6 +207,44 @@ function sendText(res, status, body) {
 
 function sendError(res, status, message, details) {
   sendJson(res, status, { error: message, details });
+}
+
+function clientAddress(req) {
+  return (
+    req.headers['cf-connecting-ip'] ||
+    String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+    req.socket.remoteAddress ||
+    'unknown'
+  );
+}
+
+function reserveDownloadCapacity(req, itemCount) {
+  const now = Date.now();
+  if (now - downloadUsage.startedAt >= DOWNLOAD_RATE_WINDOW_MS) {
+    downloadUsage = {
+      startedAt: now,
+      total: 0,
+      byClient: new Map(),
+    };
+  }
+
+  const client = clientAddress(req);
+  const clientTotal = downloadUsage.byClient.get(client) || 0;
+  const retryAfterSeconds = Math.max(
+    1,
+    Math.ceil((downloadUsage.startedAt + DOWNLOAD_RATE_WINDOW_MS - now) / 1000),
+  );
+
+  if (
+    clientTotal + itemCount > MAX_DOWNLOAD_ITEMS_PER_CLIENT ||
+    downloadUsage.total + itemCount > MAX_DOWNLOAD_ITEMS_GLOBAL
+  ) {
+    return { allowed: false, retryAfterSeconds };
+  }
+
+  downloadUsage.byClient.set(client, clientTotal + itemCount);
+  downloadUsage.total += itemCount;
+  return { allowed: true, retryAfterSeconds };
 }
 
 function contentDisposition(filename, fallback = 'download') {
@@ -1395,6 +1441,17 @@ async function handleApi(req, res, url) {
 
     if (normalized.some((item) => !validBlogId(item.id))) {
       sendError(res, 400, 'ブログIDが正しくありません。');
+      return;
+    }
+
+    const capacity = reserveDownloadCapacity(req, normalized.length);
+    if (!capacity.allowed) {
+      res.setHeader('Retry-After', String(capacity.retryAfterSeconds));
+      sendError(
+        res,
+        429,
+        '帯域保護のためダウンロード回数を制限しています。時間をおいて再度お試しください。',
+      );
       return;
     }
 
