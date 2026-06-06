@@ -7,6 +7,7 @@ const http = require('http');
 const path = require('path');
 const os = require('os');
 const { createRequire } = require('module');
+const { once } = require('events');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PORT = Number(process.env.PORT || 4173);
@@ -143,7 +144,8 @@ const PROVIDERS = {
   },
 };
 
-let browserPromise;
+const activeBrowsers = new Set();
+let pdfJobTail = Promise.resolve();
 
 function loadModule(name) {
   try {
@@ -731,23 +733,37 @@ async function getBlogs(group, memberIds) {
   return provider.getBlogs ? provider.getBlogs(memberIds) : getHtmlBlogs(provider, memberIds);
 }
 
-async function getBrowser() {
-  if (!browserPromise) {
-    const { chromium } = loadModule('playwright');
-    const executablePath = [
-      process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
-      chromium.executablePath(),
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
-      '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    ].find((candidate) => candidate && fsSync.existsSync(candidate));
+async function launchPdfBrowser() {
+  const { chromium } = loadModule('playwright');
+  const executablePath = [
+    process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+    chromium.executablePath(),
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  ].find((candidate) => candidate && fsSync.existsSync(candidate));
 
-    browserPromise = chromium.launch({
-      headless: true,
-      ...(executablePath ? { executablePath } : {}),
-    });
+  const browser = await chromium.launch({
+    headless: true,
+    ...(executablePath ? { executablePath } : {}),
+  });
+  activeBrowsers.add(browser);
+  return browser;
+}
+
+async function runPdfJob(task) {
+  const previous = pdfJobTail;
+  let release;
+  pdfJobTail = new Promise((resolve) => {
+    release = resolve;
+  });
+
+  await previous.catch(() => {});
+  try {
+    return await task();
+  } finally {
+    release();
   }
-  return browserPromise;
 }
 
 async function waitForImages(page) {
@@ -1035,34 +1051,39 @@ async function renderBlogPdf(item) {
   const provider = getProvider(item.group);
   const officialHtml = await fetchOfficial(provider, provider.detailPath(item.id));
   const printHtml = await optimizePrintImages(buildPrintHtml(provider, item, officialHtml), provider);
-  const browser = await getBrowser();
-  const page = await browser.newPage({
-    viewport: { width: 980, height: 1400 },
-    deviceScaleFactor: 1,
-    userAgent: USER_AGENT,
-  });
+  const browser = await launchPdfBrowser();
 
   try {
-    await page.setContent(printHtml, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
+    const page = await browser.newPage({
+      viewport: { width: 980, height: 1400 },
+      deviceScaleFactor: 1,
+      userAgent: USER_AGENT,
     });
-    await page.waitForLoadState('networkidle', { timeout: 25000 }).catch(() => {});
-    await waitForImages(page).catch(() => {});
 
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '10mm',
-        right: '10mm',
-        bottom: '12mm',
-        left: '10mm',
-      },
-    });
-    return pdf;
+    try {
+      await page.setContent(printHtml, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      });
+      await page.waitForLoadState('networkidle', { timeout: 25000 }).catch(() => {});
+      await waitForImages(page).catch(() => {});
+
+      return await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '10mm',
+          right: '10mm',
+          bottom: '12mm',
+          left: '10mm',
+        },
+      });
+    } finally {
+      await page.close().catch(() => {});
+    }
   } finally {
-    await page.close();
+    activeBrowsers.delete(browser);
+    await browser.close().catch(() => {});
   }
 }
 
@@ -1145,60 +1166,88 @@ function u32(value) {
   return buffer;
 }
 
-function createZip(entries) {
-  const localParts = [];
+function createZipEntry(entry, offset, dosTime, dosDate) {
+  const name = Buffer.from(entry.name, 'utf8');
+  const data = Buffer.isBuffer(entry.data) ? entry.data : Buffer.from(entry.data);
+  const crc = crc32(data);
+  const flag = 0x0800;
+  const method = 0;
+  const localHeader = Buffer.concat([
+    u32(0x04034b50),
+    u16(20),
+    u16(flag),
+    u16(method),
+    u16(dosTime),
+    u16(dosDate),
+    u32(crc),
+    u32(data.length),
+    u32(data.length),
+    u16(name.length),
+    u16(0),
+    name,
+  ]);
+  const centralHeader = Buffer.concat([
+    u32(0x02014b50),
+    u16(20),
+    u16(20),
+    u16(flag),
+    u16(method),
+    u16(dosTime),
+    u16(dosDate),
+    u32(crc),
+    u32(data.length),
+    u32(data.length),
+    u16(name.length),
+    u16(0),
+    u16(0),
+    u16(0),
+    u16(0),
+    u32(0),
+    u32(offset),
+    name,
+  ]);
+
+  return {
+    data,
+    localHeader,
+    centralHeader,
+    nextOffset: offset + localHeader.length + data.length,
+  };
+}
+
+async function writeChunk(res, chunk) {
+  if (!res.write(chunk)) {
+    await once(res, 'drain');
+  }
+}
+
+async function streamPdfZip(res, normalized, names) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+$/, '').replace('T', '_');
+  const filename = `sakamichi_blog_${stamp}.zip`;
+  const { dosTime, dosDate } = dosDateTime();
   const centralParts = [];
   let offset = 0;
-  const now = new Date();
-  const { dosTime, dosDate } = dosDateTime(now);
 
-  for (const entry of entries) {
-    const name = Buffer.from(entry.name, 'utf8');
-    const data = Buffer.isBuffer(entry.data) ? entry.data : Buffer.from(entry.data);
-    const crc = crc32(data);
-    const flag = 0x0800;
-    const method = 0;
+  for (let index = 0; index < normalized.length; index += 1) {
+    if (res.destroyed) {
+      throw new Error('ダウンロード接続が終了しました。');
+    }
 
-    const localHeader = Buffer.concat([
-      u32(0x04034b50),
-      u16(20),
-      u16(flag),
-      u16(method),
-      u16(dosTime),
-      u16(dosDate),
-      u32(crc),
-      u32(data.length),
-      u32(data.length),
-      u16(name.length),
-      u16(0),
-      name,
-    ]);
+    const pdf = await renderBlogPdf(normalized[index]);
 
-    localParts.push(localHeader, data);
+    if (!res.headersSent) {
+      res.writeHead(200, {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': contentDisposition(filename, 'sakamichi-blogs.zip'),
+        'Cache-Control': 'no-store',
+      });
+    }
 
-    const centralHeader = Buffer.concat([
-      u32(0x02014b50),
-      u16(20),
-      u16(20),
-      u16(flag),
-      u16(method),
-      u16(dosTime),
-      u16(dosDate),
-      u32(crc),
-      u32(data.length),
-      u32(data.length),
-      u16(name.length),
-      u16(0),
-      u16(0),
-      u16(0),
-      u16(0),
-      u32(0),
-      u32(offset),
-      name,
-    ]);
-
-    centralParts.push(centralHeader);
-    offset += localHeader.length + data.length;
+    const entry = createZipEntry({ name: names[index], data: pdf }, offset, dosTime, dosDate);
+    await writeChunk(res, entry.localHeader);
+    await writeChunk(res, entry.data);
+    centralParts.push(entry.centralHeader);
+    offset = entry.nextOffset;
   }
 
   const centralDirectory = Buffer.concat(centralParts);
@@ -1206,14 +1255,15 @@ function createZip(entries) {
     u32(0x06054b50),
     u16(0),
     u16(0),
-    u16(entries.length),
-    u16(entries.length),
+    u16(normalized.length),
+    u16(normalized.length),
     u32(centralDirectory.length),
     u32(offset),
     u16(0),
   ]);
 
-  return Buffer.concat([...localParts, centralDirectory, end]);
+  await writeChunk(res, centralDirectory);
+  res.end(end);
 }
 
 async function readJson(req) {
@@ -1295,36 +1345,29 @@ async function handleApi(req, res, url) {
     }
 
     const names = uniqueFilenames(normalized);
-    const pdfs = [];
+    try {
+      await runPdfJob(async () => {
+        if (normalized.length === 1) {
+          const pdf = await renderBlogPdf(normalized[0]);
+          res.writeHead(200, {
+            'Content-Type': 'application/pdf',
+            'Content-Length': pdf.length,
+            'Content-Disposition': contentDisposition(names[0], 'sakamichi-blog.pdf'),
+            'Cache-Control': 'no-store',
+          });
+          res.end(pdf);
+          return;
+        }
 
-    for (let index = 0; index < normalized.length; index += 1) {
-      const pdf = await renderBlogPdf(normalized[index]);
-      pdfs.push({ name: names[index], data: pdf });
-    }
-
-    if (pdfs.length === 1) {
-      const filename = pdfs[0].name;
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Length': pdfs[0].data.length,
-        'Content-Disposition': contentDisposition(filename, 'sakamichi-blog.pdf'),
-        'Cache-Control': 'no-store',
+        await streamPdfZip(res, normalized, names);
       });
-      res.end(pdfs[0].data);
-      return;
+    } catch (error) {
+      if (res.headersSent) {
+        res.destroy(error);
+        return;
+      }
+      throw error;
     }
-
-    const zip = createZip(pdfs);
-    const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+$/, '').replace('T', '_');
-    const filename = `sakamichi_blog_${stamp}.zip`;
-
-    res.writeHead(200, {
-      'Content-Type': 'application/zip',
-      'Content-Length': zip.length,
-      'Content-Disposition': contentDisposition(filename, 'sakamichi-blogs.zip'),
-      'Cache-Control': 'no-store',
-    });
-    res.end(zip);
     return;
   }
 
@@ -1400,12 +1443,8 @@ server.listen(PORT, () => {
 
 async function shutdown() {
   server.close();
-  if (browserPromise) {
-    const browser = await browserPromise.catch(() => null);
-    if (browser) {
-      await browser.close();
-    }
-  }
+  await Promise.all(Array.from(activeBrowsers, (browser) => browser.close().catch(() => {})));
+  activeBrowsers.clear();
 }
 
 process.on('SIGINT', async () => {
