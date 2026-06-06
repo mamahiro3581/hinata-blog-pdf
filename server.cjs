@@ -7,7 +7,6 @@ const http = require('http');
 const path = require('path');
 const os = require('os');
 const { createRequire } = require('module');
-const { once } = require('events');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const PORT = Number(process.env.PORT || 4173);
@@ -1248,12 +1247,29 @@ async function writeChunk(res, chunk) {
     return;
   }
 
-  await Promise.race([
-    once(res, 'drain'),
-    once(res, 'close').then(() => {
-      throw new Error('ダウンロード接続が終了しました。');
-    }),
-  ]);
+  await new Promise((resolve, reject) => {
+    const cleanup = () => {
+      res.off('drain', onDrain);
+      res.off('close', onClose);
+      res.off('error', onError);
+    };
+    const onDrain = () => {
+      cleanup();
+      resolve();
+    };
+    const onClose = () => {
+      cleanup();
+      reject(new Error('ダウンロード接続が終了しました。'));
+    };
+    const onError = (error) => {
+      cleanup();
+      reject(error);
+    };
+
+    res.once('drain', onDrain);
+    res.once('close', onClose);
+    res.once('error', onError);
+  });
 }
 
 async function streamPdfZip(res, normalized, names) {
