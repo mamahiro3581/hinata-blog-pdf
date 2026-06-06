@@ -17,6 +17,8 @@ const MAX_DOWNLOAD_ITEMS = 60;
 const PDF_IMAGE_MAX_WIDTH = 360;
 const PDF_IMAGE_MAX_HEIGHT = 540;
 const PDF_IMAGE_MAX_SOURCE_BYTES = 15 * 1024 * 1024;
+const PDF_BROWSER_LAUNCH_TIMEOUT = 30000;
+const PDF_RENDER_TIMEOUT = 60000;
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || '';
@@ -745,6 +747,7 @@ async function launchPdfBrowser() {
 
   const browser = await chromium.launch({
     headless: true,
+    timeout: PDF_BROWSER_LAUNCH_TIMEOUT,
     ...(executablePath ? { executablePath } : {}),
   });
   activeBrowsers.add(browser);
@@ -763,6 +766,20 @@ async function runPdfJob(task) {
     return await task();
   } finally {
     release();
+  }
+}
+
+async function withTimeout(promise, timeoutMs, message) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -1049,6 +1066,8 @@ function buildPrintHtml(provider, item, officialHtml) {
 
 async function renderBlogPdf(item) {
   const provider = getProvider(item.group);
+  const startedAt = Date.now();
+  console.log(`PDF生成開始: ${provider.id}/${item.id}`);
   const officialHtml = await fetchOfficial(provider, provider.detailPath(item.id));
   const printHtml = await optimizePrintImages(buildPrintHtml(provider, item, officialHtml), provider);
   const browser = await launchPdfBrowser();
@@ -1068,22 +1087,27 @@ async function renderBlogPdf(item) {
       await page.waitForLoadState('networkidle', { timeout: 25000 }).catch(() => {});
       await waitForImages(page).catch(() => {});
 
-      return await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '10mm',
-          right: '10mm',
-          bottom: '12mm',
-          left: '10mm',
-        },
-      });
+      return await withTimeout(
+        page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '10mm',
+            right: '10mm',
+            bottom: '12mm',
+            left: '10mm',
+          },
+        }),
+        PDF_RENDER_TIMEOUT,
+        'PDF生成がタイムアウトしました。',
+      );
     } finally {
       await page.close().catch(() => {});
     }
   } finally {
     activeBrowsers.delete(browser);
     await browser.close().catch(() => {});
+    console.log(`PDF生成終了: ${provider.id}/${item.id} ${Date.now() - startedAt}ms`);
   }
 }
 
@@ -1216,9 +1240,20 @@ function createZipEntry(entry, offset, dosTime, dosDate) {
 }
 
 async function writeChunk(res, chunk) {
-  if (!res.write(chunk)) {
-    await once(res, 'drain');
+  if (res.destroyed || res.writableEnded) {
+    throw new Error('ダウンロード接続が終了しました。');
   }
+
+  if (res.write(chunk)) {
+    return;
+  }
+
+  await Promise.race([
+    once(res, 'drain'),
+    once(res, 'close').then(() => {
+      throw new Error('ダウンロード接続が終了しました。');
+    }),
+  ]);
 }
 
 async function streamPdfZip(res, normalized, names) {
@@ -1234,6 +1269,9 @@ async function streamPdfZip(res, normalized, names) {
     }
 
     const pdf = await renderBlogPdf(normalized[index]);
+    if (res.destroyed || res.writableEnded) {
+      throw new Error('ダウンロード接続が終了しました。');
+    }
 
     if (!res.headersSent) {
       res.writeHead(200, {
@@ -1362,6 +1400,9 @@ async function handleApi(req, res, url) {
         await streamPdfZip(res, normalized, names);
       });
     } catch (error) {
+      if (res.destroyed) {
+        return;
+      }
       if (res.headersSent) {
         res.destroy(error);
         return;
