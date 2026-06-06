@@ -288,6 +288,19 @@ function providerAbsoluteUrl(provider, value) {
   return new URL(value, provider.baseUrl).toString();
 }
 
+function providerOptionalAbsoluteUrl(provider, value) {
+  if (!value) {
+    return '';
+  }
+
+  try {
+    const url = new URL(value, provider.baseUrl);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : '';
+  } catch (_) {
+    return '';
+  }
+}
+
 function assertOfficialUrl(provider, value) {
   const url = new URL(value, provider.baseUrl);
   if (url.origin !== new URL(provider.baseUrl).origin) {
@@ -586,8 +599,9 @@ function formatNogiDate(value = '') {
 function parseNogiApiArticles(provider, data, memberId, pageIndex) {
   return (data || []).map((item) => {
     const id = String(item.code || '');
-    const url = item.link || provider.detailPath(id);
-    const image = item.img || '';
+    const url =
+      providerOptionalAbsoluteUrl(provider, item.link) ||
+      providerAbsoluteUrl(provider, provider.detailPath(id));
 
     return {
       id,
@@ -598,8 +612,8 @@ function parseNogiApiArticles(provider, data, memberId, pageIndex) {
       page: pageIndex + 1,
       group: provider.id,
       groupLabel: provider.label,
-      url: providerAbsoluteUrl(provider, url),
-      image: image ? providerAbsoluteUrl(provider, image) : '',
+      url,
+      image: providerOptionalAbsoluteUrl(provider, item.img),
     };
   });
 }
