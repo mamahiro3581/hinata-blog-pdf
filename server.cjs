@@ -13,6 +13,11 @@ const PORT = Number(process.env.PORT || 4173);
 const MAX_FETCH_PAGES = 500;
 const NOGI_FETCH_PAGE_SIZE = 100;
 const MAX_DOWNLOAD_ITEMS = 60;
+const PDF_IMAGE_MAX_WIDTH = 360;
+const PDF_IMAGE_MAX_HEIGHT = 540;
+const PDF_IMAGE_MAX_SOURCE_BYTES = 15 * 1024 * 1024;
+const TRANSPARENT_PIXEL =
+  'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || '';
 const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD || '';
 const USER_AGENT =
@@ -157,7 +162,8 @@ function loadModule(name) {
 
     for (const root of candidates) {
       try {
-        const req = createRequire(path.join(root, 'codex-require.cjs'));
+        const requireRoot = path.basename(root) === 'node_modules' ? path.dirname(root) : root;
+        const req = createRequire(path.join(requireRoot, 'codex-require.cjs'));
         return req(name);
       } catch (_) {
         // Try the next known module root.
@@ -747,6 +753,87 @@ async function waitForImages(page) {
   });
 }
 
+async function optimizePrintImages(html, provider) {
+  const sources = Array.from(
+    new Set(
+      Array.from(html.matchAll(/<img\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1/gi))
+        .map((match) => match[2].trim())
+        .filter(Boolean),
+    ),
+  );
+
+  if (sources.length === 0) {
+    return html;
+  }
+
+  const sharp = loadModule('sharp');
+  sharp.cache(false);
+  sharp.concurrency(1);
+  let optimizedHtml = html;
+
+  for (const source of sources) {
+    if (source.startsWith('data:')) {
+      continue;
+    }
+
+    let replacement = TRANSPARENT_PIXEL;
+
+    try {
+      const imageUrl = new URL(decodeHtml(source), provider.baseUrl);
+      if (!['http:', 'https:'].includes(imageUrl.protocol)) {
+        throw new Error('未対応の画像URLです。');
+      }
+
+      const response = await fetch(imageUrl, {
+        headers: {
+          Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          Referer: provider.officialUrl,
+          'User-Agent': USER_AGENT,
+        },
+        signal: AbortSignal.timeout(20000),
+      });
+
+      if (!response.ok) {
+        throw new Error(`画像取得エラー: ${response.status}`);
+      }
+
+      const contentLength = Number.parseInt(response.headers.get('content-length') || '0', 10);
+      if (contentLength > PDF_IMAGE_MAX_SOURCE_BYTES) {
+        throw new Error('画像サイズが上限を超えています。');
+      }
+
+      const input = Buffer.from(await response.arrayBuffer());
+      if (input.length > PDF_IMAGE_MAX_SOURCE_BYTES) {
+        throw new Error('画像サイズが上限を超えています。');
+      }
+
+      const output = await sharp(input, {
+        animated: false,
+        failOn: 'none',
+        limitInputPixels: 25_000_000,
+      })
+        .rotate()
+        .resize({
+          width: PDF_IMAGE_MAX_WIDTH,
+          height: PDF_IMAGE_MAX_HEIGHT,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .flatten({ background: '#ffffff' })
+        .jpeg({ quality: 72, progressive: true })
+        .toBuffer();
+
+      replacement = `data:image/jpeg;base64,${output.toString('base64')}`;
+    } catch (error) {
+      console.warn(`PDF画像を軽量化できませんでした: ${source} (${error.message})`);
+    }
+
+    optimizedHtml = optimizedHtml.split(source).join(replacement);
+  }
+
+  return optimizedHtml;
+}
+
 function extractHinataPrintData(item, officialHtml) {
   const articleBlock = extractHinataArticleBlock(officialHtml);
   return {
@@ -933,7 +1020,7 @@ function buildPrintHtml(provider, item, officialHtml) {
 async function renderBlogPdf(item) {
   const provider = getProvider(item.group);
   const officialHtml = await fetchOfficial(provider, provider.detailPath(item.id));
-  const printHtml = buildPrintHtml(provider, item, officialHtml);
+  const printHtml = await optimizePrintImages(buildPrintHtml(provider, item, officialHtml), provider);
   const browser = await getBrowser();
   const page = await browser.newPage({
     viewport: { width: 980, height: 1400 },
