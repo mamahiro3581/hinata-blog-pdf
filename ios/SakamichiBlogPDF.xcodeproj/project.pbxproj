@@ -1,0 +1,485 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1988616F40DE263777688453 /* HTMLHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC62E629EEB87E23125B158D /* HTMLHelpers.swift */; };
+		2B119AD0FD682BDF156D74C0 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0926213D0E31133DCD3FD6 /* Models.swift */; };
+		3F1FD8D62E96672F19DDD091 /* SakamichiBlogPDFApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF51F6268D4107C7DAEFB44A /* SakamichiBlogPDFApp.swift */; };
+		4E7EB342D2361DE96FCFA341 /* AdvertisingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7769507045A59ECA6560291 /* AdvertisingManager.swift */; };
+		50201DFEF9B8F4654AA09AA0 /* AdBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0976983F41987DBB0BA1DE8B /* AdBannerView.swift */; };
+		5B2B770F1F0AE450AFC0FCCE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2E9206CDF97FB97605BCAE /* ContentView.swift */; };
+		5CF09609162DBAA92E391600 /* OfficialBlogServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2373145E634D10F493B2105A /* OfficialBlogServiceTests.swift */; };
+		62FE37206FA0ABF995EB900B /* ZipArchiveWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3418E13402215CAF5E06F8 /* ZipArchiveWriter.swift */; };
+		7056893B7F8E276FD3BF2D0B /* OfficialBlogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E73B30F93F52A31417D52D16 /* OfficialBlogService.swift */; };
+		7AF7C359F0E60F97B06B4918 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BA81D944ACE8A1B911C2ED18 /* Assets.xcassets */; };
+		A41F389FF7B8C7CE309EF8F4 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = A533DF85A69AFDBD1771FF33 /* GoogleMobileAds */; };
+		AD91FB3430448002FE65BBDD /* PDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF5A93ABCE07A2D413BBB748 /* PDFExporter.swift */; };
+		BAD0E5FF291AF8449E985A0F /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8238AAC8A7243D2B1FCCA732 /* AppViewModel.swift */; };
+		E1402D89D34F362964D84006 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA3494DB643630F2E6461D9 /* ActivityView.swift */; };
+		EA4C63B35BBC452FA2954427 /* AppLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D7451A2F9201378F17BC9C /* AppLinks.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7C6AA6F0E271FE0FB64538B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C734C584874797AA8A395412 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA74EC64790AAF218F7DE50E;
+			remoteInfo = SakamichiBlogPDF;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0976983F41987DBB0BA1DE8B /* AdBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerView.swift; sourceTree = "<group>"; };
+		2373145E634D10F493B2105A /* OfficialBlogServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficialBlogServiceTests.swift; sourceTree = "<group>"; };
+		2FE658C23002537FB2328722 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		3C3418E13402215CAF5E06F8 /* ZipArchiveWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipArchiveWriter.swift; sourceTree = "<group>"; };
+		4A0926213D0E31133DCD3FD6 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		5851B07EC7E2F3E26256000C /* SakamichiBlogPDFTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SakamichiBlogPDFTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F2E9206CDF97FB97605BCAE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8238AAC8A7243D2B1FCCA732 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
+		89D7451A2F9201378F17BC9C /* AppLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLinks.swift; sourceTree = "<group>"; };
+		BA81D944ACE8A1B911C2ED18 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BF51F6268D4107C7DAEFB44A /* SakamichiBlogPDFApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SakamichiBlogPDFApp.swift; sourceTree = "<group>"; };
+		D7769507045A59ECA6560291 /* AdvertisingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvertisingManager.swift; sourceTree = "<group>"; };
+		DDED46237169153800378608 /* SakamichiBlogPDF.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SakamichiBlogPDF.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E73B30F93F52A31417D52D16 /* OfficialBlogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficialBlogService.swift; sourceTree = "<group>"; };
+		FC62E629EEB87E23125B158D /* HTMLHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLHelpers.swift; sourceTree = "<group>"; };
+		FF5A93ABCE07A2D413BBB748 /* PDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExporter.swift; sourceTree = "<group>"; };
+		FFA3494DB643630F2E6461D9 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		836C0E0E9FE6EC67411D4877 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A41F389FF7B8C7CE309EF8F4 /* GoogleMobileAds in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03A9C37994087D4151D9D9E6 = {
+			isa = PBXGroup;
+			children = (
+				170E9087C212DF0CC297FE43 /* SakamichiBlogPDF */,
+				5AB426E7FBC38951338F535E /* SakamichiBlogPDFTests */,
+				41A0D97FECE53785EF309E6E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		170E9087C212DF0CC297FE43 /* SakamichiBlogPDF */ = {
+			isa = PBXGroup;
+			children = (
+				FFA3494DB643630F2E6461D9 /* ActivityView.swift */,
+				0976983F41987DBB0BA1DE8B /* AdBannerView.swift */,
+				D7769507045A59ECA6560291 /* AdvertisingManager.swift */,
+				89D7451A2F9201378F17BC9C /* AppLinks.swift */,
+				8238AAC8A7243D2B1FCCA732 /* AppViewModel.swift */,
+				BA81D944ACE8A1B911C2ED18 /* Assets.xcassets */,
+				5F2E9206CDF97FB97605BCAE /* ContentView.swift */,
+				FC62E629EEB87E23125B158D /* HTMLHelpers.swift */,
+				2FE658C23002537FB2328722 /* Info.plist */,
+				4A0926213D0E31133DCD3FD6 /* Models.swift */,
+				E73B30F93F52A31417D52D16 /* OfficialBlogService.swift */,
+				FF5A93ABCE07A2D413BBB748 /* PDFExporter.swift */,
+				BF51F6268D4107C7DAEFB44A /* SakamichiBlogPDFApp.swift */,
+				3C3418E13402215CAF5E06F8 /* ZipArchiveWriter.swift */,
+			);
+			path = SakamichiBlogPDF;
+			sourceTree = "<group>";
+		};
+		41A0D97FECE53785EF309E6E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DDED46237169153800378608 /* SakamichiBlogPDF.app */,
+				5851B07EC7E2F3E26256000C /* SakamichiBlogPDFTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5AB426E7FBC38951338F535E /* SakamichiBlogPDFTests */ = {
+			isa = PBXGroup;
+			children = (
+				2373145E634D10F493B2105A /* OfficialBlogServiceTests.swift */,
+			);
+			path = SakamichiBlogPDFTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		78D7CF244EF4BD1F92457896 /* SakamichiBlogPDFTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 715E8DB67F54FF21276EBE89 /* Build configuration list for PBXNativeTarget "SakamichiBlogPDFTests" */;
+			buildPhases = (
+				BC47DC6787E0DC71D6F87835 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2E4A07B1ED56D493B2A49AC6 /* PBXTargetDependency */,
+			);
+			name = SakamichiBlogPDFTests;
+			packageProductDependencies = (
+			);
+			productName = SakamichiBlogPDFTests;
+			productReference = 5851B07EC7E2F3E26256000C /* SakamichiBlogPDFTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		AA74EC64790AAF218F7DE50E /* SakamichiBlogPDF */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5B5CFB598F0B3817D8F2A704 /* Build configuration list for PBXNativeTarget "SakamichiBlogPDF" */;
+			buildPhases = (
+				9CD720BF0AD2ABCFA075048B /* Sources */,
+				7C22CF0E720FE69FE9FB2E5A /* Resources */,
+				836C0E0E9FE6EC67411D4877 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SakamichiBlogPDF;
+			packageProductDependencies = (
+				A533DF85A69AFDBD1771FF33 /* GoogleMobileAds */,
+			);
+			productName = SakamichiBlogPDF;
+			productReference = DDED46237169153800378608 /* SakamichiBlogPDF.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C734C584874797AA8A395412 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					AA74EC64790AAF218F7DE50E = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 7CDB0273721E18B95544B0F0 /* Build configuration list for PBXProject "SakamichiBlogPDF" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 03A9C37994087D4151D9D9E6;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				46771248F961AFD0B721733D /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 41A0D97FECE53785EF309E6E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA74EC64790AAF218F7DE50E /* SakamichiBlogPDF */,
+				78D7CF244EF4BD1F92457896 /* SakamichiBlogPDFTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7C22CF0E720FE69FE9FB2E5A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7AF7C359F0E60F97B06B4918 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9CD720BF0AD2ABCFA075048B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1402D89D34F362964D84006 /* ActivityView.swift in Sources */,
+				50201DFEF9B8F4654AA09AA0 /* AdBannerView.swift in Sources */,
+				4E7EB342D2361DE96FCFA341 /* AdvertisingManager.swift in Sources */,
+				EA4C63B35BBC452FA2954427 /* AppLinks.swift in Sources */,
+				BAD0E5FF291AF8449E985A0F /* AppViewModel.swift in Sources */,
+				5B2B770F1F0AE450AFC0FCCE /* ContentView.swift in Sources */,
+				1988616F40DE263777688453 /* HTMLHelpers.swift in Sources */,
+				2B119AD0FD682BDF156D74C0 /* Models.swift in Sources */,
+				7056893B7F8E276FD3BF2D0B /* OfficialBlogService.swift in Sources */,
+				AD91FB3430448002FE65BBDD /* PDFExporter.swift in Sources */,
+				3F1FD8D62E96672F19DDD091 /* SakamichiBlogPDFApp.swift in Sources */,
+				62FE37206FA0ABF995EB900B /* ZipArchiveWriter.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BC47DC6787E0DC71D6F87835 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5CF09609162DBAA92E391600 /* OfficialBlogServiceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2E4A07B1ED56D493B2A49AC6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA74EC64790AAF218F7DE50E /* SakamichiBlogPDF */;
+			targetProxy = 7C6AA6F0E271FE0FB64538B6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		39BDB4B770D0A9EB07457CA3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3DCA6910BFA365DF0ABDB7C7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mamahiro3581.SakamichiBlogPDFTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SakamichiBlogPDF.app/SakamichiBlogPDF";
+			};
+			name = Release;
+		};
+		697075B7F0EA7DC436370A23 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mamahiro3581.SakamichiBlogPDFTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SakamichiBlogPDF.app/SakamichiBlogPDF";
+			};
+			name = Debug;
+		};
+		6A1D8CA4305DB14AB78445F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SakamichiBlogPDF/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mamahiro3581.SakamichiBlogPDF;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		998481BCF1E551469A70EAE0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9E03065D66F6895772C8A4D8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SakamichiBlogPDF/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mamahiro3581.SakamichiBlogPDF;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5B5CFB598F0B3817D8F2A704 /* Build configuration list for PBXNativeTarget "SakamichiBlogPDF" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6A1D8CA4305DB14AB78445F7 /* Debug */,
+				9E03065D66F6895772C8A4D8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		715E8DB67F54FF21276EBE89 /* Build configuration list for PBXNativeTarget "SakamichiBlogPDFTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				697075B7F0EA7DC436370A23 /* Debug */,
+				3DCA6910BFA365DF0ABDB7C7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7CDB0273721E18B95544B0F0 /* Build configuration list for PBXProject "SakamichiBlogPDF" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				39BDB4B770D0A9EB07457CA3 /* Debug */,
+				998481BCF1E551469A70EAE0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		46771248F961AFD0B721733D /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = exactVersion;
+				version = 13.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A533DF85A69AFDBD1771FF33 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 46771248F961AFD0B721733D /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = C734C584874797AA8A395412 /* Project object */;
+}
