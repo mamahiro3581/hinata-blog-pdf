@@ -391,10 +391,17 @@ actor OfficialBlogService {
 
     private func parseHinataArticles(_ html: String, memberID: String, pageIndex: Int) -> [BlogPost] {
         html.components(separatedBy: #"<div class="p-blog-article">"#).dropFirst().compactMap { block in
-            guard let detail = HTMLHelpers.matches(
-                #"href="([^"]*/s/official/diary/detail/(\d+)[^"]*)""#,
+            let detailTag = HTMLHelpers.first(
+                #"(<a\b[^>]*class="[^"]*\bc-button-blog-detail\b[^"]*"[^>]*>)"#,
                 in: block
-            ).first, detail.count > 2 else {
+            )
+            guard
+                let detail = HTMLHelpers.matches(
+                    #"href="([^"]*/s/official/diary/detail/(\d+)[^"]*)""#,
+                    in: detailTag
+                ).first,
+                detail.count > 2
+            else {
                 return nil
             }
             return makePost(

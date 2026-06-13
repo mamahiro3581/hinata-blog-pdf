@@ -301,6 +301,7 @@ function setBlogPage(page, shouldScroll = true) {
     return;
   }
 
+  state.selectedBlogs.clear();
   state.currentBlogPage = nextPage;
   renderBlogs();
 

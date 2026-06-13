@@ -515,7 +515,9 @@ function parseHinataArticles(provider, html, memberId, pageIndex) {
   const blocks = html.split('<div class="p-blog-article">').slice(1);
 
   for (const block of blocks) {
-    const detailMatch = block.match(/href="([^"]*\/s\/official\/diary\/detail\/(\d+)[^"]*)"/);
+    const detailTag =
+      block.match(/<a\b[^>]*class="[^"]*\bc-button-blog-detail\b[^"]*"[^>]*>/i)?.[0] || '';
+    const detailMatch = detailTag.match(/href="([^"]*\/s\/official\/diary\/detail\/(\d+)[^"]*)"/i);
     if (!detailMatch) {
       continue;
     }

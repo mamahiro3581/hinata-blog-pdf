@@ -1,5 +1,6 @@
 const MAX_FETCH_PAGES = 45;
 const NOGI_FETCH_PAGE_SIZE = 100;
+const API_CACHE_VERSION = '2026-06-13-hinata-detail-link';
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
@@ -307,7 +308,9 @@ function extractBalancedDivByClass(html, className) {
 function parseHinataArticles(provider, html, memberId, pageIndex) {
   const articles = [];
   for (const block of html.split('<div class="p-blog-article">').slice(1)) {
-    const detail = block.match(/href="([^"]*\/s\/official\/diary\/detail\/(\d+)[^"]*)"/);
+    const detailTag =
+      block.match(/<a\b[^>]*class="[^"]*\bc-button-blog-detail\b[^"]*"[^>]*>/i)?.[0] || '';
+    const detail = detailTag.match(/href="([^"]*\/s\/official\/diary\/detail\/(\d+)[^"]*)"/i);
     if (!detail) {
       continue;
     }
@@ -640,13 +643,16 @@ async function articlePayload(provider, item, requestUrl) {
 
 async function cachedJson(request, ctx, ttl, producer) {
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const cacheUrl = new URL(request.url);
+  cacheUrl.searchParams.set('__version', API_CACHE_VERSION);
+  const cacheKey = new Request(cacheUrl.toString(), request);
+  const cached = await cache.match(cacheKey);
   if (cached) {
     return cached;
   }
   const body = await producer();
   const response = json(body, 200, `public, max-age=${ttl}`);
-  ctx.waitUntil(cache.put(request, response.clone()));
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
   return response;
 }
 

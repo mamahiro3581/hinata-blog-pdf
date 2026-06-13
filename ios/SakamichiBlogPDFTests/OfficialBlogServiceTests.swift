@@ -23,6 +23,15 @@ final class OfficialBlogServiceTests: XCTestCase {
         XCTAssertTrue(blogs.allSatisfy { $0.memberID == member.id && $0.group == .nogi })
     }
 
+    func testHinataBlogUsesItsOwnDetailLinkWhenBodyLinksAnotherBlog() async throws {
+        let service = OfficialBlogService()
+        let blogs = try await service.fetchBlogs(group: .hinata, memberIDs: ["24"])
+        let blog = try XCTUnwrap(blogs.first(where: { $0.id == "58154" }))
+
+        XCTAssertEqual(blog.title, "( ¨̮ )>≡本日にぶぱるVALORANT生配信")
+        XCTAssertEqual(blog.url.path, "/s/official/diary/detail/58154")
+    }
+
     @MainActor
     func testRendersOfficialBlogAsPDF() async throws {
         let service = OfficialBlogService()
