@@ -4,10 +4,20 @@
   "private": true,
   "description": "坂道グループ公式ブログを選択してPDFまたはZipで保存するWebアプリ",
   "scripts": {
-    "start": "node server.cjs"
+    "start": "node server.cjs",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy"
   },
   "dependencies": {
+    "html2pdf.js": "^0.14.0",
+    "jszip": "^3.10.1",
     "playwright": "^1.60.0",
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "wrangler": "4.100.0"
+  },
+  "overrides": {
+    "esbuild": "0.28.1"
   }
 }

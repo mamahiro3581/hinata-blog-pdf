@@ -20,16 +20,23 @@ npx playwright install chromium
 npm start
 ```
 
-## 公開する場合
+## 無料で公開する場合
 
-このアプリはPDF生成にNode.jsとChromiumが必要なので、GitHub Pagesのような静的ホスティングでは動きません。Docker対応のWebサービスにデプロイしてください。
+Cloudflare Workers版では公式ブログの取得だけをWorkerで行い、PDFとZIPはブラウザ内で生成します。サーバー側のChromiumや生成ファイルの転送が不要なので、Cloudflare Workersの無料枠で運用できます。
 
-Renderに公開する場合:
+```bash
+npm install
+npx wrangler login
+npm run worker:deploy
+```
 
-1. このフォルダをGitHubリポジトリにpushします。
-2. RenderでBlueprintを作成し、このリポジトリを選択します。
-3. `render.yaml` が読み込まれ、Docker Web Serviceとして作成されます。
-4. 画面の指示に従い、必要なら `BASIC_AUTH_USER` と `BASIC_AUTH_PASSWORD` を設定します。
+ローカルでWorker版を確認する場合:
+
+```bash
+npm run worker:dev
+```
+
+## 従来のNode版
 
 Dockerでローカル確認する場合:
 

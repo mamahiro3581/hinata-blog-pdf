@@ -503,6 +503,95 @@ h2 {
   pointer-events: none;
 }
 
+.pdf-render-stage {
+  position: fixed;
+  top: 0;
+  left: -100000px;
+  width: 190mm;
+  background: #ffffff;
+  pointer-events: none;
+}
+
+.pdf-document {
+  width: 190mm;
+  padding: 0;
+  overflow-wrap: anywhere;
+  color: #111111;
+  background: #ffffff;
+  font-family:
+    "Noto Sans CJK JP",
+    "Noto Sans JP",
+    "MS Gothic",
+    "Yu Gothic",
+    "Hiragino Sans",
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.pdf-header {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #cfd5db;
+}
+
+.pdf-group {
+  margin: 0 0 6px;
+  color: #5e6875;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pdf-header h1 {
+  margin: 0;
+  color: #111111;
+  font-size: 25px;
+  line-height: 1.45;
+}
+
+.pdf-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 8px;
+  color: #5e6875;
+  font-size: 12px;
+}
+
+.pdf-article {
+  padding-top: 16px;
+}
+
+.pdf-article img {
+  width: auto !important;
+  max-width: 25% !important;
+  height: auto !important;
+  max-height: 135mm !important;
+  object-fit: contain;
+  break-inside: avoid;
+}
+
+.pdf-article video,
+.pdf-article iframe,
+.pdf-article script {
+  display: none !important;
+}
+
+.pdf-article a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pdf-source {
+  display: flex;
+  gap: 5px;
+  margin-top: 24px;
+  padding-top: 10px;
+  border-top: 1px solid #cfd5db;
+  color: #5e6875;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 860px) {
   .topbar {
     align-items: flex-start;

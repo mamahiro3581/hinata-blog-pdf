@@ -313,12 +313,24 @@ async function loadBlogs() {
   renderBlogs();
 
   try {
-    const query = new URLSearchParams({
-      group: state.group,
-      members: memberIds.join(','),
-    });
-    const data = await apiJson(`/api/blogs?${query.toString()}`);
-    state.blogs = data.blogs || [];
+    const blogs = [];
+    for (const [index, memberId] of memberIds.entries()) {
+      setStatus(`${currentGroup().label} ${index + 1}/${memberIds.length}人目`);
+      const query = new URLSearchParams({
+        group: state.group,
+        member: memberId,
+      });
+      const data = await apiJson(`/api/blogs?${query.toString()}`);
+      blogs.push(...(data.blogs || []));
+    }
+
+    const uniqueBlogs = new Map();
+    for (const blog of blogs) {
+      uniqueBlogs.set(blog.id, blog);
+    }
+    state.blogs = Array.from(uniqueBlogs.values()).sort((a, b) =>
+      String(b.id).localeCompare(String(a.id), 'en', { numeric: true }),
+    );
     state.selectedBlogs.clear();
     state.currentBlogPage = 1;
     renderBlogs();
@@ -336,18 +348,117 @@ function selectedBlogItems() {
   return state.blogs.filter((blog) => state.selectedBlogs.has(blog.id));
 }
 
-function filenameFromDisposition(header) {
-  if (!header) {
-    return '';
+function sanitizeFilename(value, fallback = 'blog') {
+  const cleaned = String(value || '')
+    .normalize('NFKC')
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_')
+    .replace(/\s+/g, ' ')
+    .replace(/[. ]+$/g, '')
+    .trim();
+  return (cleaned || fallback).slice(0, 120);
+}
+
+function blogFilename(blog, index) {
+  const parts = [blog.date, blog.memberName, blog.title].filter(Boolean);
+  return `${sanitizeFilename(parts.join('_'), `blog-${index + 1}`)}.pdf`;
+}
+
+function triggerDownload(blob, filename) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+function articleQuery(blog) {
+  return new URLSearchParams({
+    group: state.group,
+    id: blog.id,
+    title: blog.title || '',
+    date: blog.date || '',
+    memberName: blog.memberName || '',
+  });
+}
+
+function createPdfDocument(article) {
+  const root = document.createElement('article');
+  root.className = 'pdf-document';
+  root.innerHTML = `
+    <header class="pdf-header">
+      <p class="pdf-group">${escapeHtml(article.groupLabel || currentGroup().label)}</p>
+      <h1>${escapeHtml(article.title || '')}</h1>
+      <div class="pdf-meta">
+        <span>${escapeHtml(article.memberName || '')}</span>
+        <span>${escapeHtml(article.date || '')}</span>
+      </div>
+    </header>
+    <div class="pdf-article">${article.article || ''}</div>
+    <footer class="pdf-source">
+      <span>Source:</span>
+      <a href="${escapeHtml(article.sourceUrl || '')}">${escapeHtml(article.sourceUrl || '')}</a>
+    </footer>
+  `;
+  return root;
+}
+
+async function waitForPdfImages(root) {
+  const images = Array.from(root.querySelectorAll('img'));
+  await Promise.all(
+    images.map((image) => {
+      if (image.complete) {
+        return Promise.resolve();
+      }
+      return new Promise((resolve) => {
+        const finish = () => resolve();
+        image.addEventListener('load', finish, { once: true });
+        image.addEventListener('error', finish, { once: true });
+        window.setTimeout(finish, 15000);
+      });
+    }),
+  );
+}
+
+async function createPdfBlob(article) {
+  if (typeof window.html2pdf !== 'function') {
+    throw new Error('PDF生成ライブラリを読み込めませんでした。ページを再読み込みしてください。');
   }
 
-  const utf8 = header.match(/filename\*=UTF-8''([^;]+)/i);
-  if (utf8) {
-    return decodeURIComponent(utf8[1]);
-  }
+  const stage = document.querySelector('#pdfRenderStage');
+  const root = createPdfDocument(article);
+  stage.replaceChildren(root);
+  await waitForPdfImages(root);
 
-  const ascii = header.match(/filename="([^"]+)"/i);
-  return ascii ? ascii[1] : '';
+  try {
+    return await window
+      .html2pdf()
+      .set({
+        margin: [10, 10, 12, 10],
+        image: { type: 'jpeg', quality: 0.88 },
+        html2canvas: {
+          scale: 1.5,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait',
+        },
+        pagebreak: {
+          mode: ['css', 'legacy'],
+          avoid: ['img', '.pdf-source'],
+        },
+      })
+      .from(root)
+      .outputPdf('blob');
+  } finally {
+    stage.replaceChildren();
+  }
 }
 
 async function downloadSelectedBlogs() {
@@ -355,34 +466,55 @@ async function downloadSelectedBlogs() {
   if (blogs.length === 0) {
     return;
   }
+  if (blogs.length > 60) {
+    alert('一度に保存できるブログは60件までです。');
+    return;
+  }
 
   setBusy(true);
-  setStatus('PDF作成中');
+  setStatus(`PDF作成中 0/${blogs.length}`);
 
   try {
-    const response = await fetch('/api/download', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ group: state.group, blogs }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || '保存に失敗しました。');
+    const files = [];
+    const usedNames = new Set();
+    for (const [index, blog] of blogs.entries()) {
+      setStatus(`PDF作成中 ${index + 1}/${blogs.length}`);
+      const article = await apiJson(`/api/article?${articleQuery(blog).toString()}`);
+      const blob = await createPdfBlob(article);
+      let filename = blogFilename(article, index);
+      let suffix = 2;
+      while (usedNames.has(filename)) {
+        filename = blogFilename(
+          { ...article, title: `${article.title || `blog-${index + 1}`} (${suffix})` },
+          index,
+        );
+        suffix += 1;
+      }
+      usedNames.add(filename);
+      files.push({ filename, blob });
     }
 
-    const blob = await response.blob();
-    const filename =
-      filenameFromDisposition(response.headers.get('Content-Disposition')) ||
-      (blogs.length === 1 ? 'sakamichi-blog.pdf' : 'sakamichi-blogs.zip');
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = objectUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(objectUrl);
+    if (files.length === 1) {
+      triggerDownload(files[0].blob, files[0].filename);
+    } else {
+      if (typeof window.JSZip !== 'function') {
+        throw new Error('ZIP生成ライブラリを読み込めませんでした。ページを再読み込みしてください。');
+      }
+      setStatus('ZIP作成中');
+      const zip = new window.JSZip();
+      for (const file of files) {
+        zip.file(file.filename, file.blob);
+      }
+      const zipBlob = await zip.generateAsync(
+        {
+          type: 'blob',
+          compression: 'STORE',
+        },
+        (metadata) => setStatus(`ZIP作成中 ${Math.round(metadata.percent)}%`),
+      );
+      const date = new Date().toISOString().slice(0, 10);
+      triggerDownload(zipBlob, `Sakamichi_Blog_PDF_${date}.zip`);
+    }
     setStatus('保存完了');
   } catch (error) {
     setStatus('保存失敗');
