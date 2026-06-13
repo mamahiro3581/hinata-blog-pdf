@@ -347,13 +347,22 @@ async function loadBlogs() {
   try {
     const blogs = [];
     for (const [index, memberId] of memberIds.entries()) {
-      setStatus(`${currentGroup().label} ${index + 1}/${memberIds.length}人目`);
-      const query = new URLSearchParams({
-        group: state.group,
-        member: memberId,
-      });
-      const data = await apiJson(`/api/blogs?${query.toString()}`);
-      blogs.push(...(data.blogs || []));
+      let startPage = 0;
+      do {
+        setStatus(
+          `${currentGroup().label} ${index + 1}/${memberIds.length}人目 ${blogs.length}件取得`,
+        );
+        const query = new URLSearchParams({
+          group: state.group,
+          member: memberId,
+        });
+        if (startPage > 0) {
+          query.set('startPage', String(startPage));
+        }
+        const data = await apiJson(`/api/blogs?${query.toString()}`);
+        blogs.push(...(data.blogs || []));
+        startPage = Number.isInteger(data.nextPage) ? data.nextPage : null;
+      } while (startPage !== null);
     }
 
     const uniqueBlogs = new Map();
@@ -442,13 +451,26 @@ async function waitForPdfImages(root) {
   await Promise.all(
     images.map((image) => {
       if (image.complete) {
+        if (image.naturalWidth === 0) {
+          image.remove();
+        }
         return Promise.resolve();
       }
       return new Promise((resolve) => {
-        const finish = () => resolve();
-        image.addEventListener('load', finish, { once: true });
-        image.addEventListener('error', finish, { once: true });
-        window.setTimeout(finish, 15000);
+        let finished = false;
+        const finish = (removeImage = false) => {
+          if (finished) {
+            return;
+          }
+          finished = true;
+          if (removeImage) {
+            image.remove();
+          }
+          resolve();
+        };
+        image.addEventListener('load', () => finish(), { once: true });
+        image.addEventListener('error', () => finish(true), { once: true });
+        window.setTimeout(() => finish(image.naturalWidth === 0), 15000);
       });
     }),
   );

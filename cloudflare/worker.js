@@ -1,6 +1,7 @@
-const MAX_FETCH_PAGES = 45;
+const HTML_FETCH_CHUNK_PAGES = 40;
+const NOGI_MAX_FETCH_PAGES = 45;
 const NOGI_FETCH_PAGE_SIZE = 100;
-const API_CACHE_VERSION = '2026-06-13-hinata-detail-link';
+const API_CACHE_VERSION = '2026-06-13-group-audit';
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
@@ -438,13 +439,16 @@ async function getMembers(provider) {
   return provider.parseMembers(await fetchOfficial(provider, provider.membersPath));
 }
 
-async function getHtmlBlogs(provider, memberId) {
+async function getHtmlBlogs(provider, memberId, startPage = 0) {
   const articles = [];
   const seen = new Set();
-  for (let pageIndex = 0; pageIndex < MAX_FETCH_PAGES; pageIndex += 1) {
+  let complete = false;
+  const endPage = startPage + HTML_FETCH_CHUNK_PAGES;
+  for (let pageIndex = startPage; pageIndex < endPage; pageIndex += 1) {
     const html = await fetchOfficial(provider, provider.memberListPath(memberId, pageIndex));
     const page = provider.parseArticles(html, memberId, pageIndex);
     if (page.length === 0) {
+      complete = true;
       break;
     }
     let added = 0;
@@ -456,16 +460,24 @@ async function getHtmlBlogs(provider, memberId) {
       }
     }
     if (added === 0) {
+      complete = true;
       break;
     }
   }
-  return articles;
+  return {
+    blogs: articles,
+    nextPage: complete ? null : endPage,
+  };
 }
 
 async function getNogiBlogs(provider, memberId) {
   const articles = [];
   const seen = new Set();
-  for (let offset = 0; offset < MAX_FETCH_PAGES * NOGI_FETCH_PAGE_SIZE; offset += NOGI_FETCH_PAGE_SIZE) {
+  for (
+    let offset = 0;
+    offset < NOGI_MAX_FETCH_PAGES * NOGI_FETCH_PAGE_SIZE;
+    offset += NOGI_FETCH_PAGE_SIZE
+  ) {
     const url = new URL('/s/n46/api/list/blog', provider.baseUrl);
     url.searchParams.set('rw', String(NOGI_FETCH_PAGE_SIZE));
     url.searchParams.set('st', String(offset));
@@ -488,15 +500,16 @@ async function getNogiBlogs(provider, memberId) {
       break;
     }
   }
-  return articles;
+  return { blogs: articles, nextPage: null };
 }
 
-async function getBlogs(provider, memberId) {
-  const blogs =
+async function getBlogs(provider, memberId, startPage = 0) {
+  const result =
     provider.id === 'nogi'
       ? await getNogiBlogs(provider, memberId)
-      : await getHtmlBlogs(provider, memberId);
-  return blogs.sort((a, b) => b.id.localeCompare(a.id, 'en', { numeric: true }));
+      : await getHtmlBlogs(provider, memberId, startPage);
+  result.blogs.sort((a, b) => b.id.localeCompare(a.id, 'en', { numeric: true }));
+  return result;
 }
 
 function extractHinataArticleBlock(html) {
@@ -720,12 +733,21 @@ async function handleApi(request, ctx) {
   }
   if (url.pathname === '/api/blogs') {
     const memberId = String(url.searchParams.get('member') || '');
+    const startPage = Number.parseInt(url.searchParams.get('startPage') || '0', 10);
     if (!/^\d{1,8}$/.test(memberId)) {
       return errorResponse('メンバーを選択してください。', 400);
     }
+    if (!Number.isInteger(startPage) || startPage < 0 || startPage > 1000) {
+      return errorResponse('取得開始ページが正しくありません。', 400);
+    }
     return cachedJson(request, ctx, 900, async () => {
-      const blogs = await getBlogs(provider, memberId);
-      return { group: provider.id, blogs, count: blogs.length };
+      const result = await getBlogs(provider, memberId, startPage);
+      return {
+        group: provider.id,
+        blogs: result.blogs,
+        count: result.blogs.length,
+        nextPage: result.nextPage,
+      };
     });
   }
   if (url.pathname === '/api/article') {
