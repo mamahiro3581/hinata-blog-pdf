@@ -153,7 +153,7 @@ function selectedMemberLabel() {
   return `${selected.length}人選択`;
 }
 
-function setMemberDropdown(open, focusSearch = false) {
+function setMemberDropdown(open) {
   const resetSearch = !open && els.memberSearch.value;
   state.memberDropdownOpen = open && !state.busy && state.members.length > 0;
   els.memberDropdown.hidden = !state.memberDropdownOpen;
@@ -162,9 +162,6 @@ function setMemberDropdown(open, focusSearch = false) {
   if (resetSearch) {
     els.memberSearch.value = '';
     renderMembers();
-  }
-  if (state.memberDropdownOpen && focusSearch) {
-    els.memberSearch.focus();
   }
 }
 
@@ -322,10 +319,6 @@ async function loadMembers() {
     const data = await apiJson(`/api/members?${query.toString()}`);
     state.members = data.members || [];
     state.selectedMembers.clear();
-
-    if (state.members[0]) {
-      state.selectedMembers.add(state.members[0].id);
-    }
 
     renderMembers();
     setStatus('準備完了');
@@ -595,7 +588,7 @@ els.blogList.addEventListener('change', (event) => {
 els.memberSearch.addEventListener('input', renderMembers);
 
 els.memberDropdownButton.addEventListener('click', () => {
-  setMemberDropdown(!state.memberDropdownOpen, !state.memberDropdownOpen);
+  setMemberDropdown(!state.memberDropdownOpen);
 });
 
 els.closeMemberDropdown.addEventListener('click', () => {
