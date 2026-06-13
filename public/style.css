@@ -470,7 +470,7 @@ h2 {
   justify-content: center;
   gap: 8px;
   padding: 14px 16px;
-  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
 
@@ -480,15 +480,24 @@ h2 {
 
 .pagination-pages {
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
 
 .page-step,
 .page-number {
   min-width: 38px;
   padding: 0 11px;
+}
+
+.page-number {
+  flex: none;
 }
 
 .page-number.is-current {
@@ -731,7 +740,7 @@ h2 {
   .pagination-pages {
     order: 3;
     width: 100%;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 
   .page-step {

@@ -306,7 +306,7 @@ function setBlogPage(page, shouldScroll = true) {
 
   if (shouldScroll) {
     els.blogListWrap.scrollTop = 0;
-    els.blogList.scrollIntoView({ block: 'start' });
+    els.pagination.scrollIntoView({ block: 'start' });
   }
 }
 
