@@ -35,14 +35,27 @@
               <h2>メンバー</h2>
               <span id="memberCount" class="count">0</span>
             </div>
-            <div class="control-row">
-              <input id="memberSearch" class="search" type="search" placeholder="メンバー検索" autocomplete="off" />
+            <div id="memberSelect" class="member-select">
+              <button
+                id="memberDropdownButton"
+                class="member-dropdown-button"
+                type="button"
+                aria-expanded="false"
+                aria-controls="memberDropdown"
+              >
+                <span id="memberSelectionLabel">メンバーを選択</span>
+                <span class="member-dropdown-arrow" aria-hidden="true"></span>
+              </button>
+              <div id="memberDropdown" class="member-dropdown" hidden>
+                <input id="memberSearch" class="search" type="search" placeholder="メンバー検索" autocomplete="off" />
+                <div class="member-dropdown-actions">
+                  <button id="selectAllMembers" class="secondary" type="button">表示中を全選択</button>
+                  <button id="clearMembers" class="secondary" type="button">すべて解除</button>
+                </div>
+                <div id="memberList" class="member-list" role="group" aria-label="メンバー候補"></div>
+                <button id="closeMemberDropdown" class="primary member-dropdown-close" type="button">選択完了</button>
+              </div>
             </div>
-            <div class="button-row">
-              <button id="selectAllMembers" class="secondary" type="button">全選択</button>
-              <button id="clearMembers" class="secondary" type="button">解除</button>
-            </div>
-            <div id="memberList" class="member-list"></div>
           </section>
 
           <section class="panel options-panel">

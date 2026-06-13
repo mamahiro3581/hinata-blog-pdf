@@ -34,6 +34,7 @@ const state = {
   selectedBlogs: new Set(),
   currentBlogPage: 1,
   blogPageSize: DEFAULT_BLOG_PAGE_SIZE,
+  memberDropdownOpen: false,
   busy: false,
 };
 
@@ -42,8 +43,13 @@ const els = {
   groupSelect: document.querySelector('#groupSelect'),
   officialLink: document.querySelector('#officialLink'),
   memberCount: document.querySelector('#memberCount'),
+  memberSelect: document.querySelector('#memberSelect'),
+  memberDropdownButton: document.querySelector('#memberDropdownButton'),
+  memberSelectionLabel: document.querySelector('#memberSelectionLabel'),
+  memberDropdown: document.querySelector('#memberDropdown'),
   memberSearch: document.querySelector('#memberSearch'),
   memberList: document.querySelector('#memberList'),
+  closeMemberDropdown: document.querySelector('#closeMemberDropdown'),
   selectAllMembers: document.querySelector('#selectAllMembers'),
   clearMembers: document.querySelector('#clearMembers'),
   loadBlogs: document.querySelector('#loadBlogs'),
@@ -89,6 +95,10 @@ function updateButtons() {
   const hasSelectedBlogs = state.selectedBlogs.size > 0;
 
   els.groupSelect.disabled = state.busy;
+  els.memberDropdownButton.disabled = state.busy || state.members.length === 0;
+  els.memberSearch.disabled = state.busy;
+  els.selectAllMembers.disabled = state.busy || visibleMembers().length === 0;
+  els.clearMembers.disabled = state.busy || !hasMembers;
   els.loadBlogs.disabled = state.busy || !hasMembers;
   els.blogPageSize.disabled = state.busy;
   els.selectAllBlogs.disabled = state.busy || !hasBlogs;
@@ -132,6 +142,32 @@ function visibleMembers() {
   return state.members.filter((member) => member.name.toLowerCase().includes(query));
 }
 
+function selectedMemberLabel() {
+  const selected = state.members.filter((member) => state.selectedMembers.has(member.id));
+  if (selected.length === 0) {
+    return 'メンバーを選択';
+  }
+  if (selected.length === 1) {
+    return selected[0].name;
+  }
+  return `${selected.length}人選択`;
+}
+
+function setMemberDropdown(open, focusSearch = false) {
+  const resetSearch = !open && els.memberSearch.value;
+  state.memberDropdownOpen = open && !state.busy && state.members.length > 0;
+  els.memberDropdown.hidden = !state.memberDropdownOpen;
+  els.memberDropdownButton.setAttribute('aria-expanded', String(state.memberDropdownOpen));
+  els.memberSelect.classList.toggle('is-open', state.memberDropdownOpen);
+  if (resetSearch) {
+    els.memberSearch.value = '';
+    renderMembers();
+  }
+  if (state.memberDropdownOpen && focusSearch) {
+    els.memberSearch.focus();
+  }
+}
+
 function totalBlogPages() {
   return Math.max(1, Math.ceil(state.blogs.length / currentBlogPageSize()));
 }
@@ -158,9 +194,10 @@ function currentPageBlogs() {
 function renderMembers() {
   const members = visibleMembers();
   els.memberCount.textContent = `${state.selectedMembers.size}/${state.members.length}`;
+  els.memberSelectionLabel.textContent = selectedMemberLabel();
 
   if (members.length === 0) {
-    els.memberList.innerHTML = '<div class="empty-state">該当なし</div>';
+    els.memberList.innerHTML = '<div class="member-empty">該当なし</div>';
     updateButtons();
     return;
   }
@@ -278,6 +315,7 @@ function setBlogPage(page, shouldScroll = true) {
 
 async function loadMembers() {
   setBusy(true);
+  setMemberDropdown(false);
   setStatus(`${currentGroup().label} 取得中`);
   try {
     const query = new URLSearchParams({ group: state.group });
@@ -556,6 +594,28 @@ els.blogList.addEventListener('change', (event) => {
 
 els.memberSearch.addEventListener('input', renderMembers);
 
+els.memberDropdownButton.addEventListener('click', () => {
+  setMemberDropdown(!state.memberDropdownOpen, !state.memberDropdownOpen);
+});
+
+els.closeMemberDropdown.addEventListener('click', () => {
+  setMemberDropdown(false);
+  els.memberDropdownButton.focus();
+});
+
+document.addEventListener('click', (event) => {
+  if (state.memberDropdownOpen && !els.memberSelect.contains(event.target)) {
+    setMemberDropdown(false);
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && state.memberDropdownOpen) {
+    setMemberDropdown(false);
+    els.memberDropdownButton.focus();
+  }
+});
+
 els.groupSelect.addEventListener('change', () => {
   state.group = GROUPS[els.groupSelect.value] ? els.groupSelect.value : 'hinata';
   state.members = [];
@@ -564,6 +624,7 @@ els.groupSelect.addEventListener('change', () => {
   state.selectedBlogs.clear();
   state.currentBlogPage = 1;
   els.memberSearch.value = '';
+  setMemberDropdown(false);
   els.emptyState.textContent = 'メンバーを選んでブログを取得してください';
   updateGroupChrome();
   renderMembers();
