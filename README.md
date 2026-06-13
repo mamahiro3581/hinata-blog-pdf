@@ -2,6 +2,8 @@
 
 乃木坂46、櫻坂46、欅坂46、日向坂46の公式ブログをメンバー別に全件取得し、選択したブログをPDFで保存するWebアプリです。複数のブログを選ぶとZipファイルでまとめて保存します。
 
+公開URL: https://sakamichi-blog-pdf.minakasihenshin646.workers.dev/
+
 ## 起動
 
 このCodex環境では次のコマンドで起動できます。
