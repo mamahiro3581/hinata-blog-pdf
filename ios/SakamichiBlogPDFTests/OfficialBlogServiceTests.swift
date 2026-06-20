@@ -46,6 +46,21 @@ final class OfficialBlogServiceTests: XCTestCase {
         XCTAssertGreaterThan(document.numberOfPages, 0)
     }
 
+    @MainActor
+    func testReusesPDFRendererAndIgnoresBrokenImages() async throws {
+        let exporter = PDFExporter()
+        let html = """
+        <html><body><h1>PDF test</h1><img src="broken://image"><p>本文</p></body></html>
+        """
+
+        for _ in 0..<2 {
+            let data = try await exporter.render(html: html, baseURL: BlogGroup.nogi.baseURL)
+            let provider = try XCTUnwrap(CGDataProvider(data: data as CFData))
+            let document = try XCTUnwrap(CGPDFDocument(provider))
+            XCTAssertGreaterThan(document.numberOfPages, 0)
+        }
+    }
+
     func testWritesMultipleFilesAsZip() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("\(UUID().uuidString).zip")

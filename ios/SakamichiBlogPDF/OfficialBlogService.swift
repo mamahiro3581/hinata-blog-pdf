@@ -30,6 +30,7 @@ actor OfficialBlogService {
     private let session: URLSession
     private let maximumPages = 500
     private let nogiPageSize = 100
+    private let maximumRequestAttempts = 3
 
     init() {
         let configuration = URLSessionConfiguration.ephemeral
@@ -277,21 +278,44 @@ actor OfficialBlogService {
         )
         request.setValue("ja,en-US;q=0.8,en;q=0.6", forHTTPHeaderField: "Accept-Language")
 
-        let (data, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw OfficialBlogError.invalidResponse
-        }
-        guard (200..<300).contains(httpResponse.statusCode) else {
-            throw OfficialBlogError.httpError(group: group, status: httpResponse.statusCode)
-        }
+        var lastError: Error = OfficialBlogError.invalidResponse
+        for attempt in 0..<maximumRequestAttempts {
+            do {
+                let (data, response) = try await session.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw OfficialBlogError.invalidResponse
+                }
+                guard (200..<300).contains(httpResponse.statusCode) else {
+                    throw OfficialBlogError.httpError(group: group, status: httpResponse.statusCode)
+                }
 
-        if let text = String(data: data, encoding: .utf8) {
-            return text
+                if let text = String(data: data, encoding: .utf8) {
+                    return text
+                }
+                if let text = String(data: data, encoding: .japaneseEUC) {
+                    return text
+                }
+                throw OfficialBlogError.invalidData
+            } catch {
+                lastError = error
+                guard attempt < maximumRequestAttempts - 1, isRetryable(error) else {
+                    throw error
+                }
+                try await Task.sleep(nanoseconds: UInt64(400_000_000 * (attempt + 1)))
+            }
         }
-        if let text = String(data: data, encoding: .japaneseEUC) {
-            return text
+        throw lastError
+    }
+
+    private func isRetryable(_ error: Error) -> Bool {
+        if let urlError = error as? URLError {
+            return urlError.code != .cancelled
         }
-        throw OfficialBlogError.invalidData
+        if let blogError = error as? OfficialBlogError,
+           case let .httpError(_, status) = blogError {
+            return status == 429 || status >= 500
+        }
+        return false
     }
 
     private func memberListPath(group: BlogGroup, memberID: String, pageIndex: Int) throws -> String {

@@ -19,21 +19,19 @@ enum PDFExportError: LocalizedError {
 @MainActor
 final class PDFExporter: NSObject, WKNavigationDelegate {
     private var loadContinuation: CheckedContinuation<Void, Error>?
+    private var renderingWebView: WKWebView?
 
     func render(html: String, baseURL: URL) async throws -> Data {
-        let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .nonPersistent()
-        let webView = WKWebView(
-            frame: CGRect(x: 0, y: 0, width: 760, height: 1_080),
-            configuration: configuration
-        )
-        webView.navigationDelegate = self
-        webView.isOpaque = false
-        webView.backgroundColor = .white
+        let webView = makeOrReuseWebView()
 
-        try await withCheckedThrowingContinuation { continuation in
-            loadContinuation = continuation
-            webView.loadHTMLString(html, baseURL: baseURL)
+        do {
+            try await withCheckedThrowingContinuation { continuation in
+                loadContinuation = continuation
+                webView.loadHTMLString(html, baseURL: baseURL)
+            }
+        } catch {
+            discard(webView)
+            throw error
         }
 
         await waitForImages(in: webView)
@@ -48,6 +46,7 @@ final class PDFExporter: NSObject, WKNavigationDelegate {
         renderer.prepare(forDrawingPages: NSRange(location: 0, length: renderer.numberOfPages))
 
         guard renderer.numberOfPages > 0 else {
+            discard(webView)
             throw PDFExportError.renderFailed
         }
 
@@ -62,6 +61,23 @@ final class PDFExporter: NSObject, WKNavigationDelegate {
         return data as Data
     }
 
+    private func makeOrReuseWebView() -> WKWebView {
+        if let renderingWebView {
+            return renderingWebView
+        }
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = .nonPersistent()
+        let webView = WKWebView(
+            frame: CGRect(x: 0, y: 0, width: 760, height: 1_080),
+            configuration: configuration
+        )
+        webView.navigationDelegate = self
+        webView.isOpaque = false
+        webView.backgroundColor = .white
+        renderingWebView = webView
+        return webView
+    }
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         loadContinuation?.resume()
         loadContinuation = nil
@@ -74,6 +90,7 @@ final class PDFExporter: NSObject, WKNavigationDelegate {
     ) {
         loadContinuation?.resume(throwing: error)
         loadContinuation = nil
+        discard(webView)
     }
 
     func webView(
@@ -83,6 +100,19 @@ final class PDFExporter: NSObject, WKNavigationDelegate {
     ) {
         loadContinuation?.resume(throwing: error)
         loadContinuation = nil
+        discard(webView)
+    }
+
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        loadContinuation?.resume(throwing: PDFExportError.loadFailed)
+        loadContinuation = nil
+        discard(webView)
+    }
+
+    private func discard(_ webView: WKWebView) {
+        if renderingWebView === webView {
+            renderingWebView = nil
+        }
     }
 
     private func waitForImages(in webView: WKWebView) async {
@@ -91,11 +121,17 @@ final class PDFExporter: NSObject, WKNavigationDelegate {
           const images = Array.from(document.images);
           if (images.length === 0) { resolve(true); return; }
           Promise.all(images.map(image => {
-            if (image.complete) return Promise.resolve();
+            if (image.complete) {
+              if (image.naturalWidth === 0) image.remove();
+              return Promise.resolve();
+            }
             return new Promise(done => {
               image.addEventListener('load', done, { once: true });
-              image.addEventListener('error', done, { once: true });
-              setTimeout(done, 10000);
+              image.addEventListener('error', () => { image.remove(); done(); }, { once: true });
+              setTimeout(() => {
+                if (image.naturalWidth === 0) image.remove();
+                done();
+              }, 10000);
             });
           })).then(() => resolve(true));
         });

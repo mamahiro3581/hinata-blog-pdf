@@ -122,15 +122,32 @@ function escapeHtml(value) {
 }
 
 async function apiJson(path, options = {}) {
-  const response = await fetch(path, options);
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : {};
+  const method = String(options.method || 'GET').toUpperCase();
+  const attempts = method === 'GET' ? 3 : 1;
+  let lastError;
 
-  if (!response.ok) {
-    throw new Error(data.error || '通信に失敗しました。');
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const response = await fetch(path, options);
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (!response.ok) {
+        const error = new Error(data.error || '通信に失敗しました。');
+        error.status = response.status;
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      lastError = error;
+      const retryable = !error.status || error.status === 429 || error.status >= 500;
+      if (!retryable || attempt === attempts - 1) {
+        throw error;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, 400 * (attempt + 1)));
+    }
   }
-
-  return data;
+  throw lastError;
 }
 
 function visibleMembers() {
@@ -515,6 +532,22 @@ async function createPdfBlob(article) {
   }
 }
 
+async function createBlogPdf(blog) {
+  const article = await apiJson(`/api/article?${articleQuery(blog).toString()}`);
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return { article, blob: await createPdfBlob(article) };
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, 400));
+      }
+    }
+  }
+  throw new Error(`${blog.title || `blog-${blog.id}`}：${lastError?.message || 'PDF生成に失敗しました。'}`);
+}
+
 async function downloadSelectedBlogs() {
   const blogs = selectedBlogItems();
   if (blogs.length === 0) {
@@ -533,8 +566,7 @@ async function downloadSelectedBlogs() {
     const usedNames = new Set();
     for (const [index, blog] of blogs.entries()) {
       setStatus(`PDF作成中 ${index + 1}/${blogs.length}`);
-      const article = await apiJson(`/api/article?${articleQuery(blog).toString()}`);
-      const blob = await createPdfBlob(article);
+      const { article, blob } = await createBlogPdf(blog);
       let filename = blogFilename(article, index);
       let suffix = 2;
       while (usedNames.has(filename)) {
