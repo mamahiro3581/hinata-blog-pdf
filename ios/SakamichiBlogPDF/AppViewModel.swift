@@ -162,7 +162,7 @@ final class AppViewModel: ObservableObject {
                 exportProgress = 1
                 exportedFile = ExportedFile(url: url)
             } else {
-                let zipURL = directory.appendingPathComponent(zipFilename())
+                let zipURL = directory.appendingPathComponent(zipFilename(for: selected))
                 let writer = try ZipArchiveWriter(url: zipURL)
                 for (index, post) in selected.enumerated() {
                     statusMessage = "\(index + 1)/\(selected.count)件目のPDFを生成しています..."
@@ -198,11 +198,23 @@ final class AppViewModel: ObservableObject {
         return "\(sanitiseFilename(raw, limit: 120)).pdf"
     }
 
-    private func zipFilename() -> String {
+    private func zipFilename(for posts: [BlogPost]) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyyMMdd_HHmmss"
-        return "\(group.rawValue)_blogs_\(formatter.string(from: Date())).zip"
+        let memberNames = posts.reduce(into: [String]()) { names, post in
+            if !post.memberName.isEmpty, !names.contains(post.memberName) {
+                names.append(post.memberName)
+            }
+        }
+        let memberLabel: String
+        if memberNames.count <= 3 {
+            memberLabel = memberNames.joined(separator: "_")
+        } else {
+            memberLabel = "\(memberNames.prefix(3).joined(separator: "_"))_ほか\(memberNames.count - 3)名"
+        }
+        let raw = "\(group.rawValue)_\(memberLabel.isEmpty ? "members" : memberLabel)_blogs_\(formatter.string(from: Date()))"
+        return "\(sanitiseFilename(raw, limit: 180)).zip"
     }
 
     private func sanitiseFilename(_ value: String, limit: Int) -> String {

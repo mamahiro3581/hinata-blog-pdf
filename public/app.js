@@ -25,6 +25,7 @@ const GROUPS = {
     buttonHoverColor: '#6f217d',
   },
 };
+const API_CLIENT_VERSION = '2026-06-22-nogi-balanced-body-v2';
 
 const state = {
   group: 'hinata',
@@ -124,11 +125,23 @@ function escapeHtml(value) {
 async function apiJson(path, options = {}) {
   const method = String(options.method || 'GET').toUpperCase();
   const attempts = method === 'GET' ? 3 : 1;
+  const requestUrl = new URL(path, window.location.href);
+  if (
+    method === 'GET' &&
+    requestUrl.origin === window.location.origin &&
+    requestUrl.pathname.startsWith('/api/')
+  ) {
+    requestUrl.searchParams.set('__appVersion', API_CLIENT_VERSION);
+  }
+  const requestPath =
+    requestUrl.origin === window.location.origin
+      ? `${requestUrl.pathname}${requestUrl.search}${requestUrl.hash}`
+      : requestUrl.toString();
   let lastError;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
-      const response = await fetch(path, options);
+      const response = await fetch(requestPath, options);
       const text = await response.text();
       const data = text ? JSON.parse(text) : {};
 
@@ -599,7 +612,17 @@ async function downloadSelectedBlogs() {
         (metadata) => setStatus(`ZIP作成中 ${Math.round(metadata.percent)}%`),
       );
       const date = new Date().toISOString().slice(0, 10);
-      triggerDownload(zipBlob, `Sakamichi_Blog_PDF_${date}.zip`);
+      const memberNames = Array.from(
+        new Set(blogs.map((blog) => blog.memberName).filter(Boolean)),
+      );
+      const memberLabel =
+        memberNames.length <= 3
+          ? memberNames.join('_')
+          : `${memberNames.slice(0, 3).join('_')}_ほか${memberNames.length - 3}名`;
+      triggerDownload(
+        zipBlob,
+        `Sakamichi_Blog_PDF_${sanitizeFilename(memberLabel, 'members')}_${date}.zip`,
+      );
     }
     setStatus('保存完了');
   } catch (error) {

@@ -761,7 +761,7 @@ async function handleApi(request, ctx) {
       date: String(url.searchParams.get('date') || ''),
       memberName: String(url.searchParams.get('memberName') || ''),
     };
-    return cachedJson(request, ctx, 86400, async () => articlePayload(provider, item, request.url));
+    return cachedJson(request, ctx, 900, async () => articlePayload(provider, item, request.url));
   }
   return errorResponse('APIが見つかりません。', 404);
 }
