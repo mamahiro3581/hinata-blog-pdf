@@ -1,7 +1,7 @@
 const HTML_FETCH_CHUNK_PAGES = 40;
 const NOGI_MAX_FETCH_PAGES = 45;
 const NOGI_FETCH_PAGE_SIZE = 100;
-const API_CACHE_VERSION = '2026-06-13-group-audit';
+const API_CACHE_VERSION = '2026-06-22-nogi-balanced-body';
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
@@ -576,7 +576,7 @@ function extractKeyakiPrintData(item, html) {
 }
 
 function extractNogiPrintData(item, html) {
-  const body = extractDivByClass(html, 'bd--edit');
+  const body = extractBalancedDivByClass(html, 'bd--edit');
   if (!body) {
     throw new Error('ブログ本文を見つけられませんでした。');
   }

@@ -980,7 +980,7 @@ function extractKeyakiPrintData(item, officialHtml) {
 }
 
 function extractNogiPrintData(item, officialHtml) {
-  const body = extractDivByClass(officialHtml, 'bd--edit');
+  const body = extractBalancedDivByClass(officialHtml, 'bd--edit');
   if (!body) {
     throw new Error('ブログ本文を見つけられませんでした。');
   }

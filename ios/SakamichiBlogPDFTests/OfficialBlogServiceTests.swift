@@ -32,6 +32,24 @@ final class OfficialBlogServiceTests: XCTestCase {
         XCTAssertEqual(blog.url.path, "/s/official/diary/detail/58154")
     }
 
+    func testNogiNestedArticleBodiesAreNotTruncated() async throws {
+        let service = OfficialBlogService()
+        let blogs = try await service.fetchBlogs(group: .nogi, memberIDs: ["36751"])
+        let expectedText = [
+            "57257": "明日も明後日も明明後日も",
+            "57323": "宝物がまた一つ増えました",
+            "57443": "この後21時に"
+        ]
+
+        for (id, marker) in expectedText {
+            let blog = try XCTUnwrap(blogs.first(where: { $0.id == id }))
+            let html = try await service.printHTML(for: blog)
+
+            XCTAssertTrue(HTMLHelpers.cleanText(html).contains(marker), "\(id)の本文末尾が欠けています。")
+            XCTAssertEqual(html.components(separatedBy: "<img").count - 1, 5, "\(id)の画像が欠けています。")
+        }
+    }
+
     @MainActor
     func testRendersOfficialBlogAsPDF() async throws {
         let service = OfficialBlogService()

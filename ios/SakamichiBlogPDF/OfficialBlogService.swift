@@ -627,7 +627,7 @@ actor OfficialBlogService {
             )
 
         case .nogi:
-            let body = simpleDivContent(officialHTML, className: "bd--edit")
+            let body = HTMLHelpers.extractBalancedDiv(className: "bd--edit", from: officialHTML)
             guard !body.isEmpty else { throw OfficialBlogError.missingArticle }
             return (
                 #"<div class="blog-content-body">\#(body)</div>"#,
