@@ -11,7 +11,8 @@
 - [ ] AdMobのPrivacy & messagingで同意メッセージを公開する
 - [ ] プライバシーポリシーとサポートページを公開する
 - [ ] Play Consoleのデータセーフティを広告SDKの収集内容に合わせて入力する
-- [ ] ストア掲載用スクリーンショット、アイコン、フィーチャー画像を登録する
+- [x] ストア掲載用スクリーンショット、アイコン、フィーチャー画像を生成する
+- [ ] ストア掲載用スクリーンショット、アイコン、フィーチャー画像をPlay Consoleへ登録する
 - [ ] リリース用アップロードキーを作成し、AABへ署名する
 - [x] ローカル用アップロードキーを作成し、AABへ署名する
 - [x] `./gradlew :app:bundleRelease`でAABを作成する
@@ -23,6 +24,16 @@
 ```text
 outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.0-mapping.txt
+```
+
+Play Store掲載画像:
+
+```text
+android/PlayStore/assets/high-res-icon-512.png
+android/PlayStore/assets/feature-graphic-1024x500.png
+android/PlayStore/assets/phone-01-members.png
+android/PlayStore/assets/phone-02-blogs.png
+android/PlayStore/assets/phone-03-export.png
 ```
 
 アップロードキー:

@@ -12,8 +12,8 @@ PDFまたはZIPとしてAndroid端末に保存・共有するKotlin/Jetpack Comp
 3. Gradle Syncを実行します。
 4. Android 6.0以降の実機またはエミュレータを選び、Runを実行します。
 
-このMacには現在Java Runtime、Gradle、Android SDKが見つからないため、
-この環境内ではAABのビルドまでは確認できていません。
+このワークスペースでは `work/android-build-env` 配下のローカルJDK/Android SDKを使って、
+署名付きRelease AABの作成と `jarsigner -verify` による署名検証まで確認済みです。
 
 ## Play Store向け設定
 
@@ -68,6 +68,24 @@ Play Consoleへアップロードするには、リリース用署名の設定�
 
 ```text
 outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
+```
+
+## Play Store掲載画像
+
+Play Store掲載用の画像は次に生成済みです。
+
+```text
+android/PlayStore/assets/high-res-icon-512.png
+android/PlayStore/assets/feature-graphic-1024x500.png
+android/PlayStore/assets/phone-01-members.png
+android/PlayStore/assets/phone-02-blogs.png
+android/PlayStore/assets/phone-03-export.png
+```
+
+再生成する場合は次を実行します。
+
+```sh
+node scripts/generate_play_store_assets.mjs
 ```
 
 ## 注意

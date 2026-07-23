@@ -10,6 +10,7 @@
 - 署名付きRelease AAB作成
 - `jarsigner -verify`で署名検証
 - Play Store掲載文案とチェックリスト作成
+- Play Store掲載用アイコン/フィーチャー画像/スマホスクリーンショット生成
 - プライバシーポリシー/サポートページのAndroid対応
 
 ## 成果物
@@ -19,13 +20,23 @@ outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.0-mapping.txt
 ```
 
+Play Store掲載画像:
+
+```text
+android/PlayStore/assets/high-res-icon-512.png
+android/PlayStore/assets/feature-graphic-1024x500.png
+android/PlayStore/assets/phone-01-members.png
+android/PlayStore/assets/phone-02-blogs.png
+android/PlayStore/assets/phone-03-export.png
+```
+
 ## Play Consoleで残っている作業
 
 - Google Play Console開発者アカウントで新規アプリを作成
 - 本番用AdMob AndroidアプリID/広告ユニットIDへ差し替え
 - AdMob Privacy & messagingの同意メッセージ公開
 - データセーフティ、広告の有無、コンテンツレーティングの入力
-- ストア掲載画像、スクリーンショット、フィーチャー画像の登録
+- ストア掲載画像、スクリーンショット、フィーチャー画像のPlay Console登録
 - 公式ブログのコンテンツ取得・PDF化・広告収益化の権利確認
 - 内部テストへAABをアップロードして実機確認
 - 問題がなければ製品版へリリース申請
