@@ -13,9 +13,26 @@
 - [ ] Play Consoleのデータセーフティを広告SDKの収集内容に合わせて入力する
 - [ ] ストア掲載用スクリーンショット、アイコン、フィーチャー画像を登録する
 - [ ] リリース用アップロードキーを作成し、AABへ署名する
-- [ ] `./gradlew :app:bundleRelease`でAABを作成する
+- [x] ローカル用アップロードキーを作成し、AABへ署名する
+- [x] `./gradlew :app:bundleRelease`でAABを作成する
 - [ ] 内部テストへアップロードして、ブログ取得・PDF保存・ZIP保存・広告表示を実機確認する
 - [ ] 権利許諾資料を審査メモへ添付する
+
+## 作成済み成果物
+
+```text
+outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
+outputs/android/sakamichi-blog-pdf-android-1.0.0-mapping.txt
+```
+
+アップロードキー:
+
+```text
+work/android-upload-key/sakamichi-blog-pdf-upload.jks
+work/android-upload-key/credentials.txt
+```
+
+このアップロードキーとパスワードは今後の更新にも必要です。
 
 ## Play Store提出手順
 

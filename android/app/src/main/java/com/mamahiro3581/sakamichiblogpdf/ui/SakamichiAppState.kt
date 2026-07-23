@@ -102,7 +102,7 @@ class SakamichiAppState(
         selectedBlogIds = emptySet()
     }
 
-    fun setBlogPageSize(size: Int) {
+    fun changeBlogPageSize(size: Int) {
         blogPageSize = size
         currentBlogPage = 1
         selectedBlogIds = emptySet()

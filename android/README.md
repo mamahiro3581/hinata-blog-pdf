@@ -47,6 +47,29 @@ android/app/build/outputs/bundle/release/app-release.aab
 Play Consoleへアップロードするには、リリース用署名の設定が必要です。
 新規アプリではPlay App Signingを有効にし、アップロードキーでAABに署名してください。
 
+## 今回作成したローカルビルド環境
+
+このワークスペースでは、システムへAndroid Studioを入れずに次のローカル環境を使ってビルドしました。
+
+- JDK: `work/android-build-env/jdk`
+- Android SDK: `work/android-build-env/android-sdk`
+- Gradleキャッシュ: `work/android-build-env/gradle-home`
+
+署名用アップロードキーは次に生成済みです。
+
+- Keystore: `work/android-upload-key/sakamichi-blog-pdf-upload.jks`
+- パスワード: `work/android-upload-key/credentials.txt`
+- Gradle設定: `android/keystore.properties`
+
+`work/android-upload-key` はアプリ更新に必要です。Play Storeへ初回アップロードする前に、
+安全な場所へ必ずバックアップしてください。これらの秘密ファイルはGitにはコミットしません。
+
+ビルド済みAABは次にもコピーしています。
+
+```text
+outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
+```
+
 ## 注意
 
 本アプリは非公式アプリです。

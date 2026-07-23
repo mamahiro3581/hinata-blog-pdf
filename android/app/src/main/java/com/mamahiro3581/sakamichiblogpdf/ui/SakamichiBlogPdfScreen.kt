@@ -383,7 +383,7 @@ private fun PageSizeSelector(state: SakamichiAppState) {
             val selected = state.blogPageSize == size
             if (selected) {
                 Button(
-                    onClick = { state.setBlogPageSize(size) },
+                    onClick = { state.changeBlogPageSize(size) },
                     enabled = !state.isBusy,
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = ButtonDefaults.ContentPadding,
@@ -392,7 +392,7 @@ private fun PageSizeSelector(state: SakamichiAppState) {
                 }
             } else {
                 OutlinedButton(
-                    onClick = { state.setBlogPageSize(size) },
+                    onClick = { state.changeBlogPageSize(size) },
                     enabled = !state.isBusy,
                     shape = RoundedCornerShape(8.dp),
                 ) {

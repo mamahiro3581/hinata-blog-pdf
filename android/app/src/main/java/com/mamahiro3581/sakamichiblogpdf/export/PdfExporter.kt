@@ -1,13 +1,9 @@
 package com.mamahiro3581.sakamichiblogpdf.export
 
 import android.app.Activity
-import android.os.Bundle
-import android.os.CancellationSignal
-import android.os.ParcelFileDescriptor
-import android.print.PageRange
-import android.print.PrintAttributes
-import android.print.PrintDocumentAdapter
-import android.print.PrintDocumentInfo
+import android.graphics.Color
+import android.graphics.pdf.PdfDocument
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -18,6 +14,7 @@ import com.mamahiro3581.sakamichiblogpdf.data.BlogArticle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.FileOutputStream
 import java.io.File
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -62,6 +59,8 @@ class PdfExporter(private val activity: Activity) {
             webView.settings.loadsImagesAutomatically = true
             webView.settings.blockNetworkImage = false
             webView.settings.javaScriptEnabled = false
+            webView.setBackgroundColor(Color.WHITE)
+            webView.alpha = 0f
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String?) {
                     view.postDelayed({ writePdf(view, article, outputFile, ::finish) }, 1_200)
@@ -78,7 +77,7 @@ class PdfExporter(private val activity: Activity) {
                 }
             }
 
-            activity.addContentView(webView, ViewGroup.LayoutParams(1, 1))
+            activity.addContentView(webView, ViewGroup.LayoutParams(PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT))
             webView.loadDataWithBaseURL(
                 BuildConfig.API_BASE_URL,
                 buildPrintHtml(article),
@@ -95,48 +94,40 @@ class PdfExporter(private val activity: Activity) {
         outputFile: File,
         finish: (Throwable?) -> Unit,
     ) {
-        val attributes = PrintAttributes.Builder()
-            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-            .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
-            .setResolution(PrintAttributes.Resolution("pdf", "pdf", 300, 300))
-            .setMinMargins(PrintAttributes.Margins(393, 393, 472, 393))
-            .build()
-        val adapter = webView.createPrintDocumentAdapter(sanitizeFilename(article.title, "blog", 48))
-        adapter.onLayout(
-            null,
-            attributes,
-            CancellationSignal(),
-            object : PrintDocumentAdapter.LayoutResultCallback() {
-                override fun onLayoutFinished(info: PrintDocumentInfo, changed: Boolean) {
-                    val descriptor = ParcelFileDescriptor.open(
-                        outputFile,
-                        ParcelFileDescriptor.MODE_CREATE or
-                            ParcelFileDescriptor.MODE_TRUNCATE or
-                            ParcelFileDescriptor.MODE_WRITE_ONLY,
-                    )
-                    adapter.onWrite(
-                        arrayOf(PageRange.ALL_PAGES),
-                        descriptor,
-                        CancellationSignal(),
-                        object : PrintDocumentAdapter.WriteResultCallback() {
-                            override fun onWriteFinished(pages: Array<PageRange>) {
-                                descriptor.close()
-                                finish(null)
-                            }
+        runCatching {
+            webView.measure(
+                View.MeasureSpec.makeMeasureSpec(PDF_PAGE_WIDTH, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            )
+            val contentHeight = maxOf(
+                webView.measuredHeight,
+                (webView.contentHeight * webView.scale).toInt(),
+                PDF_PAGE_HEIGHT,
+            )
+            webView.layout(0, 0, PDF_PAGE_WIDTH, contentHeight)
 
-                            override fun onWriteFailed(error: CharSequence?) {
-                                descriptor.close()
-                                finish(IllegalStateException(error?.toString() ?: "PDF生成に失敗しました。"))
-                            }
-                        },
-                    )
+            val pageCount = ((contentHeight + PDF_PAGE_HEIGHT - 1) / PDF_PAGE_HEIGHT).coerceAtLeast(1)
+            val document = PdfDocument()
+            try {
+                for (pageIndex in 0 until pageCount) {
+                    val pageInfo = PdfDocument.PageInfo.Builder(
+                        PDF_PAGE_WIDTH,
+                        PDF_PAGE_HEIGHT,
+                        pageIndex + 1,
+                    ).create()
+                    val page = document.startPage(pageInfo)
+                    page.canvas.drawColor(Color.WHITE)
+                    page.canvas.translate(0f, (-pageIndex * PDF_PAGE_HEIGHT).toFloat())
+                    webView.draw(page.canvas)
+                    document.finishPage(page)
                 }
-
-                override fun onLayoutFailed(error: CharSequence?) {
-                    finish(IllegalStateException(error?.toString() ?: "PDFレイアウトに失敗しました。"))
-                }
-            },
-            Bundle(),
+                FileOutputStream(outputFile).use { document.writeTo(it) }
+            } finally {
+                document.close()
+            }
+        }.fold(
+            onSuccess = { finish(null) },
+            onFailure = { finish(it) },
         )
     }
 
@@ -231,4 +222,9 @@ class PdfExporter(private val activity: Activity) {
         .replace(">", "&gt;")
         .replace("\"", "&quot;")
         .replace("'", "&#39;")
+
+    private companion object {
+        const val PDF_PAGE_WIDTH = 595
+        const val PDF_PAGE_HEIGHT = 842
+    }
 }
