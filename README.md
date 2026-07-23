@@ -38,6 +38,18 @@ npm run worker:deploy
 npm run worker:dev
 ```
 
+## Androidアプリ
+
+Play Store提出用のAndroidプロジェクトは `android` ディレクトリにあります。
+Android Studioで `android` ディレクトリを開き、Gradle Sync後に次を実行するとAABを作成できます。
+
+```bash
+./gradlew :app:bundleRelease
+```
+
+公開前にAdMobの本番用AndroidアプリIDとバナー広告ユニットIDへ差し替えてください。
+詳しくは `android/README.md` と `android/PlayStore/release-checklist.md` を確認してください。
+
 ## 従来のNode版
 
 Dockerでローカル確認する場合:

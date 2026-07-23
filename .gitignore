@@ -6,3 +6,6 @@ work/
 .wrangler/
 *.xcuserstate
 xcuserdata/
+android/.gradle/
+android/local.properties
+android/app/build/
