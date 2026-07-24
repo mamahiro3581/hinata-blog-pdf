@@ -11,7 +11,15 @@
 - `jarsigner -verify`で署名検証
 - Play Store掲載文案とチェックリスト作成
 - Play Store掲載用アイコン/フィーチャー画像/スマホスクリーンショット生成
+- Play Store掲載用7インチ/10インチタブレットスクリーンショット生成
 - プライバシーポリシー/サポートページのAndroid対応
+- Play Consoleで新規アプリ作成
+- Play ConsoleでプライバシーポリシーURL登録
+- Play Consoleでアプリのアクセス権、広告、政府機関アプリ、金融機能、健康関連機能を申告
+- Play Consoleでストアカテゴリを「ツール」に設定
+- Play Consoleでストア掲載文を保存
+- Play Consoleで対象ユーザーを13歳以上に設定
+- Play Consoleでデータセーフティを保存
 
 ## 成果物
 
@@ -28,18 +36,36 @@ android/PlayStore/assets/feature-graphic-1024x500.png
 android/PlayStore/assets/phone-01-members.png
 android/PlayStore/assets/phone-02-blogs.png
 android/PlayStore/assets/phone-03-export.png
+android/PlayStore/assets/tablet-7-01-members.png
+android/PlayStore/assets/tablet-7-02-blogs.png
+android/PlayStore/assets/tablet-7-03-export.png
+android/PlayStore/assets/tablet-10-01-members.png
+android/PlayStore/assets/tablet-10-02-blogs.png
+android/PlayStore/assets/tablet-10-03-export.png
 ```
 
 ## Play Consoleで残っている作業
 
-- Google Play Console開発者アカウントで新規アプリを作成
 - 本番用AdMob AndroidアプリID/広告ユニットIDへ差し替え
 - AdMob Privacy & messagingの同意メッセージ公開
-- データセーフティ、広告の有無、コンテンツレーティングの入力
+- 公開用の連絡先メールアドレスを用意し、ストア設定とIARCコンテンツレーティングに入力
+- コンテンツレーティングの質問票を完了
 - ストア掲載画像、スクリーンショット、フィーチャー画像のPlay Console登録
 - 公式ブログのコンテンツ取得・PDF化・広告収益化の権利確認
 - 内部テストへAABをアップロードして実機確認
+- クローズドテストの要件を満たす
 - 問題がなければ製品版へリリース申請
+
+## 現在のブロッカー
+
+- Chrome拡張の設定によりPlay Consoleのファイルアップロードが失敗している。
+  Chromeで `chrome://extensions` を開き、ChatGPT Chrome Extensionの詳細から
+  `Allow access to file URLs` を有効にする必要がある。
+- IARCコンテンツレーティングにはメールアドレスが必要。
+  このメールアドレスはレーティング機関やIARCと共有される可能性があるため、
+  個人メールではなく公開用サポートメールの利用を推奨する。
+- Play Consoleの新規個人開発者アカウントでは、製品版公開前に
+  12人以上のテスターによる14日以上のクローズドテストが必要になる場合がある。
 
 ## 重要
 

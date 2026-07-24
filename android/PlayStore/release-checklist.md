@@ -2,20 +2,22 @@
 
 ## 必須
 
-- [ ] Google Play Consoleの開発者アカウントを有効にする
-- [ ] Play Consoleで新規アプリを作成する
-- [ ] パッケージ名 `com.mamahiro3581.sakamichiblogpdf` を最終決定する
+- [x] Google Play Consoleの開発者アカウントを有効にする
+- [x] Play Consoleで新規アプリを作成する
+- [x] パッケージ名 `com.mamahiro3581.sakamichiblogpdf` を最終決定する
 - [ ] 4公式サイトのコンテンツ取得・PDF化・広告収益化の許諾を確認する
 - [ ] AdMobでAndroidアプリを登録し、本番用アプリIDとバナー広告ユニットIDを作成する
 - [ ] `android/app/build.gradle.kts`のAdMobテストIDを本番用IDへ置き換える
 - [ ] AdMobのPrivacy & messagingで同意メッセージを公開する
-- [ ] プライバシーポリシーとサポートページを公開する
-- [ ] Play Consoleのデータセーフティを広告SDKの収集内容に合わせて入力する
+- [x] プライバシーポリシーとサポートページを公開する
+- [x] Play Consoleのデータセーフティを広告SDKの収集内容に合わせて入力する
 - [x] ストア掲載用スクリーンショット、アイコン、フィーチャー画像を生成する
 - [ ] ストア掲載用スクリーンショット、アイコン、フィーチャー画像をPlay Consoleへ登録する
-- [ ] リリース用アップロードキーを作成し、AABへ署名する
+- [x] リリース用アップロードキーを作成し、AABへ署名する
 - [x] ローカル用アップロードキーを作成し、AABへ署名する
 - [x] `./gradlew :app:bundleRelease`でAABを作成する
+- [ ] 公開用サポートメールを用意し、Play Consoleの連絡先とIARCコンテンツレーティングに入力する
+- [ ] コンテンツレーティング質問票を完了する
 - [ ] 内部テストへアップロードして、ブログ取得・PDF保存・ZIP保存・広告表示を実機確認する
 - [ ] 権利許諾資料を審査メモへ添付する
 
@@ -34,6 +36,12 @@ android/PlayStore/assets/feature-graphic-1024x500.png
 android/PlayStore/assets/phone-01-members.png
 android/PlayStore/assets/phone-02-blogs.png
 android/PlayStore/assets/phone-03-export.png
+android/PlayStore/assets/tablet-7-01-members.png
+android/PlayStore/assets/tablet-7-02-blogs.png
+android/PlayStore/assets/tablet-7-03-export.png
+android/PlayStore/assets/tablet-10-01-members.png
+android/PlayStore/assets/tablet-10-02-blogs.png
+android/PlayStore/assets/tablet-10-03-export.png
 ```
 
 アップロードキー:
