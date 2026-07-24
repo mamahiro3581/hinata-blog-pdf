@@ -20,6 +20,9 @@
 - Play Consoleでストア掲載文を保存
 - Play Consoleで対象ユーザーを13歳以上に設定
 - Play Consoleでデータセーフティを保存
+- 公開用サポートメールを作成し、ストアの公開連絡先へ登録
+- IARCコンテンツレーティング質問票を送信
+- コンテンツレーティング「3歳以上 / 全ユーザー対象」を取得
 
 ## 成果物
 
@@ -48,8 +51,6 @@ android/PlayStore/assets/tablet-10-03-export.png
 
 - 本番用AdMob AndroidアプリID/広告ユニットIDへ差し替え
 - AdMob Privacy & messagingの同意メッセージ公開
-- 公開用の連絡先メールアドレスを用意し、ストア設定とIARCコンテンツレーティングに入力
-- コンテンツレーティングの質問票を完了
 - ストア掲載画像、スクリーンショット、フィーチャー画像のPlay Console登録
 - 公式ブログのコンテンツ取得・PDF化・広告収益化の権利確認
 - 内部テストへAABをアップロードして実機確認
@@ -58,12 +59,9 @@ android/PlayStore/assets/tablet-10-03-export.png
 
 ## 現在のブロッカー
 
-- Chrome拡張の設定によりPlay Consoleのファイルアップロードが失敗している。
-  Chromeで `chrome://extensions` を開き、ChatGPT Chrome Extensionの詳細から
-  `Allow access to file URLs` を有効にする必要がある。
-- IARCコンテンツレーティングにはメールアドレスが必要。
-  このメールアドレスはレーティング機関やIARCと共有される可能性があるため、
-  個人メールではなく公開用サポートメールの利用を推奨する。
+- Chrome拡張のファイルアクセス権限は有効化済みだが、Play Consoleの画像ライブラリが
+  アップロード後に読み込み中のまま停止している。Chromeまたは拡張機能を再起動して
+  画像とAABのアップロードを再試行する必要がある。
 - Play Consoleの新規個人開発者アカウントでは、製品版公開前に
   12人以上のテスターによる14日以上のクローズドテストが必要になる場合がある。
 
