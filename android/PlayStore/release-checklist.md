@@ -20,6 +20,9 @@
 - [x] コンテンツレーティング質問票を完了する
 - [x] AABと難読化解除ファイルを内部テストへ登録する
 - [x] 内部テスト版 `1 (1.0.0)` を公開し、テスターリストを有効にする
+- [x] `1.0.0` の起動クラッシュを実機ログから特定し、`1.0.1` で修正する
+- [x] 診断用Release APKで通常UIとテスト広告が起動することを実機確認する
+- [ ] 修正版 `2 (1.0.1)` を内部テストへ公開する
 - [ ] Android実機でブログ取得・PDF保存・ZIP保存・広告表示を確認する
 - [ ] 権利許諾資料を審査メモへ添付する
 
@@ -28,6 +31,8 @@
 ```text
 outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.0-mapping.txt
+outputs/android/sakamichi-blog-pdf-android-1.0.1-release.aab
+outputs/android/sakamichi-blog-pdf-android-1.0.1-mapping.txt
 ```
 
 Play Store掲載画像:

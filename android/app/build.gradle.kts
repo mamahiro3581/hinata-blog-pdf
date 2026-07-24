@@ -20,8 +20,8 @@ android {
         applicationId = "com.mamahiro3581.sakamichiblogpdf"
         minSdk = 23
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         val testAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
         val testBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111"

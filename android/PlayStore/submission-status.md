@@ -27,12 +27,18 @@
 - 署名付きAAB `1 (1.0.0)` と難読化解除ファイルを内部テストへ登録
 - 初回リリースノートを登録し、内部テスト版を公開
 - 専用メーリングリストを内部テストへ紐づけ、テストトラックを有効化
+- 実機ログから `1.0.0` の起動クラッシュをWorkManager/RoomのR8最適化問題と特定
+- Roomデータベース実装のコンストラクタを保持するルールを追加
+- 修正版 `1.0.1` のRelease APK/AABをビルドし、Lintと署名を確認
+- 実機へ診断用Release APKをインストールし、通常UIとテスト広告の起動を確認
 
 ## 成果物
 
 ```text
 outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.0-mapping.txt
+outputs/android/sakamichi-blog-pdf-android-1.0.1-release.aab
+outputs/android/sakamichi-blog-pdf-android-1.0.1-mapping.txt
 ```
 
 Play Store掲載画像:
@@ -56,6 +62,7 @@ android/PlayStore/assets/tablet-10-03-export.png
 - 本番用AdMob AndroidアプリID/広告ユニットIDへ差し替え
 - AdMob Privacy & messagingの同意メッセージ公開
 - 公式ブログのコンテンツ取得・PDF化・広告収益化の権利確認
+- 修正版 `1.0.1` のAABと難読化解除ファイルを内部テストへ登録して公開
 - Android実機で内部テストへ参加し、ブログ取得・PDF保存・ZIP保存・広告表示を確認
 - クローズドテストの要件を満たす
 - 問題がなければ製品版へリリース申請
