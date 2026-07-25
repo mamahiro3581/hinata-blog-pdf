@@ -156,7 +156,29 @@ class PdfExporter(private val activity: Activity) {
             slices += PageSlice(pageTop, pageBottom)
             pageTop = pageBottom
         }
+        while (slices.size > 1 && isBlankSlice(webView, slices.last())) {
+            slices.removeAt(slices.lastIndex)
+        }
         return slices.ifEmpty { listOf(PageSlice(0, 1)) }
+    }
+
+    private fun isBlankSlice(webView: WebView, slice: PageSlice): Boolean {
+        val height = slice.bottom - slice.top
+        val bitmap = Bitmap.createBitmap(PDF_PAGE_WIDTH, height, Bitmap.Config.ARGB_8888)
+        return try {
+            val canvas = android.graphics.Canvas(bitmap)
+            canvas.drawColor(Color.WHITE)
+            canvas.translate(0f, -slice.top.toFloat())
+            webView.draw(canvas)
+
+            val pixels = IntArray(PDF_PAGE_WIDTH * height)
+            bitmap.getPixels(pixels, 0, PDF_PAGE_WIDTH, 0, 0, PDF_PAGE_WIDTH, height)
+            (0 until height).all { row ->
+                isBlankRow(pixels, row * PDF_PAGE_WIDTH)
+            }
+        } finally {
+            bitmap.recycle()
+        }
     }
 
     private fun findSafePageBreak(webView: WebView, pageTop: Int, maxBottom: Int): Int {
@@ -276,7 +298,7 @@ class PdfExporter(private val activity: Activity) {
                     background: #ffffff;
                     color: #222831;
                     font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
-                    font-size: 10pt;
+                    font-size: 8pt;
                     line-height: 1.85;
                     word-break: break-word;
                   }
