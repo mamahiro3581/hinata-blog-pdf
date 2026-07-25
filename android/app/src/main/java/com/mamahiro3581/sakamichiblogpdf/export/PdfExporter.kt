@@ -276,7 +276,7 @@ class PdfExporter(private val activity: Activity) {
                     background: #ffffff;
                     color: #222831;
                     font-family: "Noto Sans CJK JP", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
-                    font-size: 13px;
+                    font-size: 10pt;
                     line-height: 1.85;
                     word-break: break-word;
                   }
@@ -307,10 +307,12 @@ class PdfExporter(private val activity: Activity) {
                   .c-blog-article__text img {
                     display: block;
                     width: auto !important;
-                    max-width: 100% !important;
+                    max-width: 75% !important;
+                    max-height: 760px !important;
                     height: auto !important;
                     margin: 8px auto;
                     break-inside: avoid;
+                    object-fit: contain;
                     border-radius: 2px;
                   }
                   a {
@@ -348,8 +350,8 @@ class PdfExporter(private val activity: Activity) {
         const val PDF_PAGE_WIDTH = 595
         const val PDF_PAGE_HEIGHT = 842
         const val PDF_CONTENT_HEIGHT = 792
-        const val PAGE_BREAK_SEARCH_HEIGHT = 180
-        const val MIN_PAGE_CONTENT_HEIGHT = 520
+        const val PAGE_BREAK_SEARCH_HEIGHT = PDF_CONTENT_HEIGHT
+        const val MIN_PAGE_CONTENT_HEIGHT = 96
         const val MIN_BLANK_ROW_COUNT = 4
         const val MAX_INK_PIXELS_PER_BLANK_ROW = 3
         const val BLANK_PIXEL_THRESHOLD = 248
