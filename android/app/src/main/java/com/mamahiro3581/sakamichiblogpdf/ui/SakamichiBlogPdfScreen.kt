@@ -125,7 +125,6 @@ private fun SakamichiBlogPdfScreen(
                     state = state,
                     onSelectVisible = { state.selectAllVisibleBlogs() },
                     onClear = { state.clearSelectedBlogs() },
-                    onExport = { scope.launch { state.exportSelectedBlogs() } },
                 )
             }
             item {
@@ -156,6 +155,10 @@ private fun SakamichiBlogPdfScreen(
             }
         }
         HorizontalDivider()
+        ExportBar(
+            state = state,
+            onExport = { scope.launch { state.exportSelectedBlogs() } },
+        )
         if (advertisingManager.canRequestAds) {
             AdBanner()
         }
@@ -315,7 +318,6 @@ private fun BlogToolbar(
     state: SakamichiAppState,
     onSelectVisible: () -> Unit,
     onClear: () -> Unit,
-    onExport: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -364,6 +366,25 @@ private fun BlogToolbar(
                     Text("解除")
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ExportBar(
+    state: SakamichiAppState,
+    onExport: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.White,
+        shadowElevation = 4.dp,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        ) {
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = onExport,
