@@ -32,6 +32,9 @@
 - 修正版 `1.0.1` のRelease APK/AABをビルドし、Lintと署名を確認
 - 実機へ診断用Release APKをインストールし、通常UIとテスト広告の起動を確認
 - 修正版 `2 (1.0.1)` と難読化解除ファイルを内部テストへ登録して公開
+- WebViewの画面外部分がPDFで白紙になる問題を文書全体描画とソフトウェア描画で修正
+- 修正版 `1.0.2` のRelease APK/AABをビルドし、Lintと署名を確認
+- 実機で11ページのブログPDFを作成し、全ページに文章または画像が描画されることを確認
 
 ## 成果物
 
@@ -40,6 +43,8 @@ outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.0-mapping.txt
 outputs/android/sakamichi-blog-pdf-android-1.0.1-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.1-mapping.txt
+outputs/android/sakamichi-blog-pdf-android-1.0.2-release.aab
+outputs/android/sakamichi-blog-pdf-android-1.0.2-mapping.txt
 ```
 
 Play Store掲載画像:
@@ -63,6 +68,7 @@ android/PlayStore/assets/tablet-10-03-export.png
 - 本番用AdMob AndroidアプリID/広告ユニットIDへ差し替え
 - AdMob Privacy & messagingの同意メッセージ公開
 - 公式ブログのコンテンツ取得・PDF化・広告収益化の権利確認
+- 修正版 `1.0.2` のAABと難読化解除ファイルを内部テストへ登録して公開
 - Android実機で内部テストへ参加し、ブログ取得・PDF保存・ZIP保存・広告表示を確認
 - クローズドテストの要件を満たす
 - 問題がなければ製品版へリリース申請

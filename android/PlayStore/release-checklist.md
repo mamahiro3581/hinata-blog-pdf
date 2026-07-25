@@ -23,6 +23,9 @@
 - [x] `1.0.0` の起動クラッシュを実機ログから特定し、`1.0.1` で修正する
 - [x] 診断用Release APKで通常UIとテスト広告が起動することを実機確認する
 - [x] 修正版 `2 (1.0.1)` を内部テストへ公開する
+- [x] 複数ページPDFの2ページ目以降が白紙になる問題を`1.0.2`で修正する
+- [x] 診断用Release APKで11ページすべてに内容が描画されることを実機確認する
+- [ ] 修正版 `3 (1.0.2)` を内部テストへ公開する
 - [ ] Android実機でブログ取得・PDF保存・ZIP保存・広告表示を確認する
 - [ ] 権利許諾資料を審査メモへ添付する
 
@@ -33,6 +36,8 @@ outputs/android/sakamichi-blog-pdf-android-1.0.0-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.0-mapping.txt
 outputs/android/sakamichi-blog-pdf-android-1.0.1-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.1-mapping.txt
+outputs/android/sakamichi-blog-pdf-android-1.0.2-release.aab
+outputs/android/sakamichi-blog-pdf-android-1.0.2-mapping.txt
 ```
 
 Play Store掲載画像:

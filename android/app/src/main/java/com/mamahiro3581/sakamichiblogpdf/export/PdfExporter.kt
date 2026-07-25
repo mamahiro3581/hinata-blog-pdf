@@ -60,10 +60,11 @@ class PdfExporter(private val activity: Activity) {
             webView.settings.blockNetworkImage = false
             webView.settings.javaScriptEnabled = false
             webView.setBackgroundColor(Color.WHITE)
+            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
             webView.alpha = 0f
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String?) {
-                    view.postDelayed({ writePdf(view, article, outputFile, ::finish) }, 1_200)
+                    view.postDelayed({ writePdf(view, outputFile, ::finish) }, 1_200)
                 }
 
                 override fun onReceivedError(
@@ -90,7 +91,6 @@ class PdfExporter(private val activity: Activity) {
 
     private fun writePdf(
         webView: WebView,
-        article: BlogArticle,
         outputFile: File,
         finish: (Throwable?) -> Unit,
     ) {
@@ -117,8 +117,10 @@ class PdfExporter(private val activity: Activity) {
                     ).create()
                     val page = document.startPage(pageInfo)
                     page.canvas.drawColor(Color.WHITE)
+                    page.canvas.save()
                     page.canvas.translate(0f, (-pageIndex * PDF_PAGE_HEIGHT).toFloat())
                     webView.draw(page.canvas)
+                    page.canvas.restore()
                     document.finishPage(page)
                 }
                 FileOutputStream(outputFile).use { document.writeTo(it) }
