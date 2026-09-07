@@ -19,11 +19,11 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>AdMobBannerAdUnitIdentifier</key>
-	<string>ca-app-pub-3940256099942544/2435281174</string>
+	<string>ca-app-pub-8775976510297666/2594813635</string>
 	<key>AdMobInterstitialAdUnitIdentifier</key>
-	<string>ca-app-pub-3940256099942544/4411468910</string>
+	<string>ca-app-pub-8775976510297666/5624301651</string>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-8775976510297666~3907895302</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>

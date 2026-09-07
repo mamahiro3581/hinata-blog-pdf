@@ -3,13 +3,13 @@
 ## 必須
 
 - [ ] Apple Developer Programの有料メンバーシップを有効にする
-- [ ] App Store Connectで新規アプリを作成する
-- [ ] Bundle ID `com.mamahiro3581.SakamichiBlogPDF` を登録する
+- [x] App Store Connectで新規アプリを作成する
+- [x] Bundle ID `com.mamahiro3581.SakamichiBlogPDF` を登録する
 - [ ] 4公式サイトのコンテンツを取得・PDF化・広告収益化する許諾を確認する
-- [ ] AdMobでiOSアプリを登録し、公開用アプリIDとバナー広告ユニットIDを作成する
-- [ ] AdMobでインタースティシャル広告ユニットIDを作成する
+- [x] AdMobでiOSアプリを登録し、公開用アプリIDとバナー広告ユニットIDを作成する
+- [x] AdMobでインタースティシャル広告ユニットIDを作成する
 - [ ] AdMobのPrivacy & messagingで同意メッセージを公開する
-- [ ] `Info.plist`のテスト用AdMob IDを公開用IDへ置き換える
+- [x] `Info.plist`のテスト用AdMob IDを公開用IDへ置き換える
 - [ ] GitHub Pagesを有効にしてプライバシー・サポートページを公開する
 - [ ] App Store ConnectのApp Privacyを広告SDKの収集内容に合わせて入力する
 - [ ] 6.9インチ、6.5インチ、iPad向けスクリーンショットを登録する

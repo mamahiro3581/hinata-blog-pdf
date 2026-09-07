@@ -27,12 +27,12 @@ Google Mobile Ads SDK 13.5.0とUser Messaging Platform 3.1.0を使用してい�
 保存開始前にインタースティシャル広告を表示します。広告が利用できない場合も保存は継続します。
 DebugビルドではGoogle公式テスト広告のみ表示されます。
 
-公開前にAdMobでiOSアプリとバナー広告ユニットを作成し、
+公開前にAdMobでiOSアプリと広告ユニットを作成し、
 `SakamichiBlogPDF/Info.plist`の次の値を置き換えてください。
 
-- `GADApplicationIdentifier`
-- `AdMobBannerAdUnitIdentifier`
-- `AdMobInterstitialAdUnitIdentifier`
+- `GADApplicationIdentifier`（設定済み）
+- `AdMobBannerAdUnitIdentifier`（設定済み）
+- `AdMobInterstitialAdUnitIdentifier`（設定済み）
 
 ReleaseビルドはテストIDのままでは広告を表示しません。
 AdMobのPrivacy & messagingで、対象地域向けの同意メッセージも公開してください。
