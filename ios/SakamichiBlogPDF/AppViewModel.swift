@@ -150,10 +150,12 @@ final class AppViewModel: ObservableObject {
 
         isExporting = true
         exportProgress = 0
-        statusMessage = "\(selected.count)件のPDFを生成しています..."
+        statusMessage = "保存の準備をしています..."
         defer { isExporting = false }
 
         do {
+            _ = await AdvertisingManager.shared.presentInterstitialIfNeeded(for: selected.count)
+            statusMessage = "\(selected.count)件のPDFを生成しています..."
             let directory = try makeExportDirectory()
             if selected.count == 1, let post = selected.first {
                 let data = try await render(post: post)

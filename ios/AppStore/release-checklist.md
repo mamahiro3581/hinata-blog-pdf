@@ -7,6 +7,7 @@
 - [ ] Bundle ID `com.mamahiro3581.SakamichiBlogPDF` を登録する
 - [ ] 4公式サイトのコンテンツを取得・PDF化・広告収益化する許諾を確認する
 - [ ] AdMobでiOSアプリを登録し、公開用アプリIDとバナー広告ユニットIDを作成する
+- [ ] AdMobでインタースティシャル広告ユニットIDを作成する
 - [ ] AdMobのPrivacy & messagingで同意メッセージを公開する
 - [ ] `Info.plist`のテスト用AdMob IDを公開用IDへ置き換える
 - [ ] GitHub Pagesを有効にしてプライバシー・サポートページを公開する
@@ -20,6 +21,7 @@
 
 - `GADApplicationIdentifier`
 - `AdMobBannerAdUnitIdentifier`
+- `AdMobInterstitialAdUnitIdentifier`
 
 Debugビルドは誤クリック防止のため、常にGoogle公式テスト広告ユニットを使用します。
 Releaseビルドでは公開用IDへ置換されていない場合、広告を表示しません。

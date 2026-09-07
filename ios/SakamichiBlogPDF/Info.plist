@@ -20,6 +20,8 @@
 	<string>1</string>
 	<key>AdMobBannerAdUnitIdentifier</key>
 	<string>ca-app-pub-3940256099942544/2435281174</string>
+	<key>AdMobInterstitialAdUnitIdentifier</key>
+	<string>ca-app-pub-3940256099942544/4411468910</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~1458002511</string>
 	<key>ITSAppUsesNonExemptEncryption</key>

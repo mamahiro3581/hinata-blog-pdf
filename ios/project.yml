@@ -12,6 +12,9 @@ packages:
   GoogleMobileAds:
     url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
     exactVersion: 13.5.0
+  UserMessagingPlatform:
+    url: https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git
+    exactVersion: 3.1.0
 targets:
   SakamichiBlogPDF:
     type: application
@@ -27,6 +30,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: GoogleMobileAds
+      - package: UserMessagingPlatform
     scheme:
       testTargets:
         - SakamichiBlogPDFTests

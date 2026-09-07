@@ -22,6 +22,7 @@
 		BAD0E5FF291AF8449E985A0F /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8238AAC8A7243D2B1FCCA732 /* AppViewModel.swift */; };
 		E1402D89D34F362964D84006 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA3494DB643630F2E6461D9 /* ActivityView.swift */; };
 		EA4C63B35BBC452FA2954427 /* AppLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D7451A2F9201378F17BC9C /* AppLinks.swift */; };
+		F1D4C4D3E2C6A7B8C9D0E1F2 /* UserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = F2E3D4C5B6A79808F9E0D1C2 /* UserMessagingPlatform */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +61,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A41F389FF7B8C7CE309EF8F4 /* GoogleMobileAds in Frameworks */,
+				F1D4C4D3E2C6A7B8C9D0E1F2 /* UserMessagingPlatform in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +151,7 @@
 			name = SakamichiBlogPDF;
 			packageProductDependencies = (
 				A533DF85A69AFDBD1771FF33 /* GoogleMobileAds */,
+				F2E3D4C5B6A79808F9E0D1C2 /* UserMessagingPlatform */,
 			);
 			productName = SakamichiBlogPDF;
 			productReference = DDED46237169153800378608 /* SakamichiBlogPDF.app */;
@@ -179,6 +182,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				46771248F961AFD0B721733D /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				E1F2A3B4C5D60718293A4B5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 41A0D97FECE53785EF309E6E /* Products */;
@@ -471,6 +475,14 @@
 				version = 13.5.0;
 			};
 		};
+		E1F2A3B4C5D60718293A4B5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git";
+			requirement = {
+				kind = exactVersion;
+				version = 3.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -478,6 +490,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 46771248F961AFD0B721733D /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
 			productName = GoogleMobileAds;
+		};
+		F2E3D4C5B6A79808F9E0D1C2 /* UserMessagingPlatform */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1F2A3B4C5D60718293A4B5C /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */;
+			productName = GoogleUserMessagingPlatform;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
