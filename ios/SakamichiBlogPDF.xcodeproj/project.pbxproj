@@ -347,6 +347,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67SZ8L5MRP;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SakamichiBlogPDF/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -420,8 +421,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67SZ8L5MRP;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SakamichiBlogPDF/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
