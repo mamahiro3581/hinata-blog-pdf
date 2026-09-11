@@ -6,9 +6,9 @@
 - [x] Play Consoleで新規アプリを作成する
 - [x] パッケージ名 `com.mamahiro3581.sakamichiblogpdf` を最終決定する
 - [ ] 4公式サイトのコンテンツ取得・PDF化・広告収益化の許諾を確認する
-- [ ] AdMobでAndroidアプリを登録し、本番用アプリIDとバナー広告ユニットIDを作成する
-- [ ] `android/app/build.gradle.kts`のAdMobテストIDを本番用IDへ置き換える
-- [ ] AdMobのPrivacy & messagingで同意メッセージを公開する
+- [x] AdMobでAndroidアプリを登録し、本番用アプリIDとバナー広告ユニットIDを作成する
+- [x] ReleaseビルドのAdMob IDを本番用へ切り替え、DebugビルドではテストIDを維持する
+- [x] AdMobのPrivacy & messagingでAndroid向け欧州規制メッセージを公開する
 - [x] プライバシーポリシーとサポートページを公開する
 - [x] Play Consoleのデータセーフティを広告SDKの収集内容に合わせて入力する
 - [x] ストア掲載用スクリーンショット、アイコン、フィーチャー画像を生成する
@@ -42,6 +42,9 @@ outputs/android/sakamichi-blog-pdf-android-1.0.1-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.1-mapping.txt
 outputs/android/sakamichi-blog-pdf-android-1.0.2-release.aab
 outputs/android/sakamichi-blog-pdf-android-1.0.2-mapping.txt
+outputs/android/sakamichi-blog-pdf-android-1.0.3-release.aab
+outputs/android/sakamichi-blog-pdf-android-1.0.3-release.apk
+outputs/android/sakamichi-blog-pdf-android-1.0.3-mapping.txt
 ```
 
 Play Store掲載画像:

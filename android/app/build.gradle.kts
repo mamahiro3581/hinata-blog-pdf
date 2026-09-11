@@ -20,8 +20,8 @@ android {
         applicationId = "com.mamahiro3581.sakamichiblogpdf"
         minSdk = 23
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
 
         val testAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
         val testBannerAdUnitId = "ca-app-pub-3940256099942544/6300978111"
@@ -43,6 +43,10 @@ android {
 
     buildTypes {
         release {
+            val productionAdMobAppId = "ca-app-pub-8775976510297666~8529273381"
+            val productionBannerAdUnitId = "ca-app-pub-8775976510297666/5930196057"
+            manifestPlaceholders["adMobAppId"] = productionAdMobAppId
+            buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"$productionBannerAdUnitId\"")
             isMinifyEnabled = true
             isShrinkResources = true
             if (releaseSigning != null) {
