@@ -37,6 +37,7 @@ const state = {
   blogPageSize: DEFAULT_BLOG_PAGE_SIZE,
   memberDropdownOpen: false,
   busy: false,
+  adInitialized: false,
 };
 
 const els = {
@@ -61,6 +62,7 @@ const els = {
   downloadBlogs: document.querySelector('#downloadBlogs'),
   emptyState: document.querySelector('#emptyState'),
   blogListWrap: document.querySelector('.blog-list-wrap'),
+  blogAd: document.querySelector('#blogAd'),
   blogList: document.querySelector('#blogList'),
   pagination: document.querySelector('#pagination'),
   prevBlogPage: document.querySelector('#prevBlogPage'),
@@ -261,6 +263,7 @@ function renderBlogs() {
       ? `${state.blogs.length}件 / 選択 ${state.selectedBlogs.size}件 / ${displayStart}-${displayEnd}件表示`
       : `${state.blogs.length}件 / 選択 ${state.selectedBlogs.size}件`;
   els.emptyState.hidden = state.blogs.length > 0;
+  updateBlogAd();
 
   if (state.blogs.length === 0) {
     els.blogList.innerHTML = '';
@@ -296,6 +299,18 @@ function renderBlogs() {
 
   renderPagination(totalPages);
   updateButtons();
+}
+
+function updateBlogAd() {
+  els.blogAd.hidden = state.blogs.length === 0;
+  if (els.blogAd.hidden || state.adInitialized || ['localhost', '127.0.0.1'].includes(location.hostname)) {
+    return;
+  }
+
+  state.adInitialized = true;
+  requestAnimationFrame(() => {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  });
 }
 
 function renderPagination(totalPages = totalBlogPages()) {

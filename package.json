@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.cjs",
     "worker:dev": "wrangler dev",
-    "worker:deploy": "wrangler deploy"
+    "worker:deploy": "wrangler deploy",
+    "pages:deploy": "wrangler pages deploy public --project-name sakamichi-blog-pdf-web --branch main"
   },
   "dependencies": {
     "html2pdf.js": "^0.14.0",

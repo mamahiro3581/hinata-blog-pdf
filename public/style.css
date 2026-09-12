@@ -452,6 +452,19 @@ h2 {
   overflow: auto;
 }
 
+.blog-ad[hidden] {
+  display: none;
+}
+
+.blog-ad:has(.adsbygoogle[data-ad-status="filled"]) {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.blog-ad .adsbygoogle[data-ad-status="unfilled"] {
+  display: none !important;
+}
+
 .empty-state {
   margin: 36px auto;
   max-width: 360px;

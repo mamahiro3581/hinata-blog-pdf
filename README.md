@@ -2,7 +2,7 @@
 
 乃木坂46、櫻坂46、欅坂46、日向坂46の公式ブログをメンバー別に全件取得し、選択したブログをPDFで保存するWebアプリです。複数のブログを選ぶとZipファイルでまとめて保存します。
 
-公開URL: https://sakamichi-blog-pdf.sakamichi-apps.workers.dev/
+公開URL: https://sakamichi-blog-pdf-web.pages.dev/
 
 ## 起動
 
@@ -24,13 +24,16 @@ npm start
 
 ## 無料で公開する場合
 
-Cloudflare Workers版では公式ブログの取得だけをWorkerで行い、PDFとZIPはブラウザ内で生成します。サーバー側のChromiumや生成ファイルの転送が不要なので、Cloudflare Workersの無料枠で運用できます。
+Cloudflare Pages版では公式ブログの取得だけをPages Functionsで行い、PDFとZIPはブラウザ内で生成します。サーバー側のChromiumや生成ファイルの転送が不要なので、無料枠で運用できます。旧Workers URLは新しいPages URLへ転送します（旧APIは継続利用できます）。
 
 ```bash
 npm install
 npx wrangler login
+npm run pages:deploy
 npm run worker:deploy
 ```
+
+WEB版の広告はAdSenseのレスポンシブ広告ユニットをブログ一覧内に表示します。広告の配信には、AdSense側のサイト審査と支払いプロフィールの設定が必要です。欧州向けの同意メッセージはAdSenseの「プライバシーとメッセージ」で管理します。
 
 ローカルでWorker版を確認する場合:
 

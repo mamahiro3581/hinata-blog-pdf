@@ -2,6 +2,7 @@ const HTML_FETCH_CHUNK_PAGES = 40;
 const NOGI_MAX_FETCH_PAGES = 45;
 const NOGI_FETCH_PAGE_SIZE = 100;
 const API_CACHE_VERSION = '2026-06-22-nogi-balanced-body';
+const CANONICAL_WEB_ORIGIN = 'https://sakamichi-blog-pdf-web.pages.dev';
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
@@ -770,6 +771,14 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     try {
+      if (
+        url.hostname === 'sakamichi-blog-pdf.sakamichi-apps.workers.dev' &&
+        (url.pathname === '/' || url.pathname === '/index.html')
+      ) {
+        const destination = new URL('/', CANONICAL_WEB_ORIGIN);
+        destination.search = url.search;
+        return Response.redirect(destination, 302);
+      }
       if (url.pathname === '/healthz') {
         return json({ ok: true, runtime: 'cloudflare-workers' }, 200, 'no-store');
       }
